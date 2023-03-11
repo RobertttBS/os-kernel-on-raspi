@@ -48,36 +48,19 @@ $(BUILD_DIR)/src/%.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
 	$(TOOLCHAIN)-gcc $(CFLAGS) $< -o $@
 
-cpio:
-	# ls *.md *.py | cpio -H hpodc -o >ramdisk
-
-initramfs.cpio:
-	cd rootfs
-	ls . | cpio -o -H newc > ../initramfs.cpio
-
-rd.o: ramdisk
-	aarch64-none-linux-gnu-ld -r -b binary -o rd.o ramdisk
-
-kernel8.img: $(SRC_OBJS) rd.o
-	$(TOOLCHAIN)-ld -nostdlib $(SRC_OBJS) rd.o -T link.ld -o kernel8.elf
+kernel8.img: $(SRC_OBJS)
+	$(TOOLCHAIN)-ld -nostdlib $(SRC_OBJS) -T link.ld -o kernel8.elf
 	$(TOOLCHAIN)-objcopy -O binary kernel8.elf kernel8.img
 
 clean:
 	rm -rf $(BUILD_DIR)/*
 	rm *.elf *.img *.o >/dev/null 2>/dev/null || true
 
-run: initramfs.cpio
-	qemu-system-aarch64 -M raspi3b -kernel kernel8.img -initrd initramfs.cpio -serial stdio
-	# qemu-system-aarch64 -M raspi3b -kernel kernel8.img -serial stdio
+run:
+	qemu-system-aarch64 -M raspi3b -kernel kernel8.img -serial stdio
 
 tty:
-	qemu-system-aarch64 -M raspi3b -serial null -serial pty
-
-sendimg:
-	python sendimg.py kernel8.img /dev/cu.usbserial-0001
-
-commu:
-	python communicate.py /dev/cu.usbserial-0001
+	qemu-system-aarch64 -M raspi3b -kernel kernel8.img -serial pty
 
 
 build_dir: $(BUILD_DIR)

@@ -1,0 +1,1 @@
+void readfile(char *target, int file_size);
