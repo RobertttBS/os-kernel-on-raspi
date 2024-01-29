@@ -37,7 +37,7 @@ _start:
 2:  // cpu id == 0, continue
     // get the dtb address
     ldr     x1, =__dtb_address
-    str     x0, [x1] // store the dtb address to the address given by the linker script
+    str     x0, [x1] // store the dtb address to the address given by the linker script. At beginning, the dtb address is stored in x0.
 
     // set exception vector table
     bl      set_exception_vector_table

@@ -30,6 +30,8 @@
 #include "stdlib.h"
 #include "dtb.h"
 #include "initrd.h"
+#include "exception.h"
+#include "sched.h"
 
 #define CMD_LEN 128
 
@@ -37,18 +39,23 @@ void main()
 {
     shell_init();
     // uart_async_init();
+
     fdt_init();
     fdt_traverse(initramfs_callback);
 
-    // read the current level from system register. If we were el0 with spsr_el1 == 0, we can't access CurrentEL.
-    unsigned long el;
-    asm volatile ("mrs %0, CurrentEL\n\t" : "=r" (el));
-    uart_puts("Current EL is: ");
-    uart_hex((el >> 2) & 3);
-    uart_puts("\n");
+    task_init();
 
-    /* Switch to el0 before running shell */
-    asm volatile("bl from_el1_to_el0");
+    disable_interrupt();
+    
+    print_current_el(); // read the current level from system register.
+
+
+    sched_init(); // start schedule
+
+
+
+    /* Switch to el0 before running shell. Unnessasary in lab 4*/
+    // move_to_user_mode();
     while(1) {
         uart_puts("# ");
         char cmd[CMD_LEN];

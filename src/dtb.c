@@ -6,14 +6,12 @@
 #include "initrd.h"
 #include "stddef.h"
 
-extern unsigned char __dtb_address;
-
+extern uint64_t __dtb_address; // the address of __dtb_address is 0x7fff0 (defined in linker file). The value of __dtb_address is set in start.S.
 fdt_header *dtb_address;
 
 void fdt_init()
 {
-    uint32_t *tmp_pointer = (uint32_t *) &__dtb_address;
-    dtb_address = (fdt_header *) *tmp_pointer;
+    dtb_address = (fdt_header *) __dtb_address;
 }
 
 void fdt_traverse(void (*callback)(fdt_prop *, char *, char *))

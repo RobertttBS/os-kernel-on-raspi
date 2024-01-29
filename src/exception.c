@@ -1,6 +1,44 @@
 #include "uart.h"
 #include "exception.h"
+#include "shell.h"
+#include "initrd.h"
+#include "time.h"
 
+void core_timer_handler()
+{
+    int seconds;
+    asm volatile(
+        "mrs x0, cntpct_el0     \n\t"
+        "mrs x1, cntfrq_el0     \n\t"
+        "udiv %0, x0, x1        \n\t": "=r" (seconds));
+    uart_puts("seconds: ");
+    uart_hex(seconds);
+    uart_send('\n');
+    asm volatile(
+        "mrs x0, cntfrq_el0     \n\t"
+        "mov x1, 2              \n\t"
+        "mul x0, x0, x1         \n\t"
+        "msr cntp_tval_el0, x0  \n\t");
+}
+
+void uart_interrupt_handler()
+{
+    if (*AUX_MU_IIR & 0x2) { // Transmit holds register empty
+        uart_puts("Transmit holds register empty, should not be here right now\n"); // cause we only enable receive interrupt
+    } else if (*AUX_MU_IIR & 0x4) { // Receiver holds valid bytes
+        if (*AUX_MU_LSR & 0x1) { // Receiver FIFO holds valid bytes
+            char r = (char) (*AUX_MU_IO); // If we take char from AUX_MU_IO, the interrupt will be cleared.
+            r = (r == '\r') ? '\n' : r;
+
+            // ouput the char to screen (uart_send without pooling)
+            if (*AUX_MU_LSR & 0x20)
+                *AUX_MU_IO = r;
+        } else {
+            uart_puts("Something unexpected\n");
+        }
+    } else 
+        uart_puts("Something unexpected\n");
+}
 
 /**
  * common exception handler
@@ -9,7 +47,7 @@ void exc_handler(unsigned long esr, unsigned long elr, unsigned long spsr, unsig
 {
     // decode exception type (some, not all. See ARM DDI0487B_b chapter D10.2.28)
     switch(esr >> 26) {
-        case 0b000000: uart_puts("Unknown"); break;
+        case 0b000000: uart_puts("Unknown exception"); break;
         case 0b000001: uart_puts("Trapped WFI/WFE"); break;
         case 0b001110: uart_puts("Illegal execution"); break;
         case 0b010101: uart_puts("System call"); break;
@@ -20,7 +58,7 @@ void exc_handler(unsigned long esr, unsigned long elr, unsigned long spsr, unsig
         case 0b100101: uart_puts("Data abort, same EL"); break;
         case 0b100110: uart_puts("Stack alignment fault"); break;
         case 0b101100: uart_puts("Floating point"); break;
-        default: uart_puts("Unknown"); break;
+        default: uart_puts("Unknown exception"); break;
     }
     switch(esr&0x3) {
         case 0: uart_puts(" at level 0"); break;
@@ -69,7 +107,21 @@ void svc_handler(unsigned long esr, unsigned long elr, unsigned long spsr, unsig
     char cmd[64];
 
     if (esr >> 26 != 0b010101) {
-        uart_puts("Not a svc call\n");
+        switch(esr >> 26) {
+            case 0b000000: uart_puts("Unknown exception"); break;
+            case 0b000001: uart_puts("Trapped WFI/WFE"); break;
+            case 0b001110: uart_puts("Illegal execution"); break;
+            case 0b010101: uart_puts("System call"); break;
+            case 0b100000: uart_puts("Instruction abort, lower EL"); break;
+            case 0b100001: uart_puts("Instruction abort, same EL"); break;
+            case 0b100010: uart_puts("Instruction alignment fault"); break;
+            case 0b100100: uart_puts("Data abort, lower EL"); break;
+            case 0b100101: uart_puts("Data abort, same EL"); break;
+            case 0b100110: uart_puts("Stack alignment fault"); break;
+            case 0b101100: uart_puts("Floating point"); break;
+            default: uart_puts("Unknown exception"); break;
+        }
+        while (1);
         return;
     }
     switch (svc_num) {
@@ -96,7 +148,7 @@ void svc_handler(unsigned long esr, unsigned long elr, unsigned long spsr, unsig
 
 void irq_router(unsigned long esr, unsigned long elr, unsigned long spsr, unsigned long far)
 {
-    uart_puts("IRQ handler\n");
+    // uart_puts("IRQ handler\n");
     int irq_core0 = *CORE0_IRQ_SOURCE;
     int irq_pend1 = *IRQ_PEND1;
     if (irq_core0 & 0x2) {
@@ -107,38 +159,11 @@ void irq_router(unsigned long esr, unsigned long elr, unsigned long spsr, unsign
     }
 }
 
-uart_interrupt_handler()
+void print_current_el()
 {
-    if (*AUX_MU_IIR & 0x2) { // Transmit holds register empty
-        uart_puts("Transmit holds register empty, should not be here right now\n"); // cause we only enable receive interrupt
-    } else if (*AUX_MU_IIR & 0x4) { // Receiver holds valid bytes
-        if (*AUX_MU_LSR & 0x1) { // Receiver FIFO holds valid bytes
-            char r = (char) (*AUX_MU_IO); // If we take char from AUX_MU_IO, the interrupt will be cleared.
-            r = (r == '\r') ? '\n' : r;
-
-            // ouput the char to screen (uart_send without pooling)
-            if (*AUX_MU_LSR & 0x20)
-                *AUX_MU_IO = r;
-        } else {
-            uart_puts("Something unexpected\n");
-        }
-    } else 
-        uart_puts("Something unexpected\n");
-}
-
-void core_timer_handler()
-{
-    int seconds;
-    asm volatile(
-        "mrs x0, cntpct_el0     \n\t"
-        "mrs x1, cntfrq_el0     \n\t"
-        "udiv %0, x0, x1        \n\t": "=r" (seconds));
-    uart_puts("seconds: ");
-    uart_hex(seconds);
-    uart_send('\n');
-    asm volatile(
-        "mrs x0, cntfrq_el0     \n\t"
-        "mov x1, 2              \n\t"
-        "mul x0, x0, x1         \n\t"
-        "msr cntp_tval_el0, x0  \n\t");
+    unsigned long el;
+    asm volatile ("mrs %0, CurrentEL\n\t" : "=r" (el));
+    uart_puts("Current EL is: ");
+    uart_hex((el >> 2) & 3);
+    uart_puts("\n");
 }

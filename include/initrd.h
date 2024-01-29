@@ -27,6 +27,7 @@
 #define INITRD_H
 
 #include "dtb.h"
+#include "initrd.h"
 
 extern char *cpio_base;
 
