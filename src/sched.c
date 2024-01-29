@@ -56,6 +56,26 @@ void demo_task2()
     }
 }
 
+void timer_task1()
+{
+    while (1) {
+        if (current->counter == 0) {
+            uart_puts("timer task1 done. Reschedule.\n");
+            schedule();
+        }
+    }
+}
+
+void timer_task2()
+{
+    while (1) {
+        if (current->counter == 0) {
+            uart_puts("timer task2 done. Reschedule.\n");
+            schedule();
+        }
+    }
+}
+
 void print_task(int i)
 {
     uart_puts("task pool: ");
@@ -79,9 +99,6 @@ void privilege_task_create(void (*func)(), unsigned int priority)
             task_pool[i].tss.lr = (uint64_t) func;
             task_pool[i].tss.sp = (uint64_t) &kstack_pool[i][KSTACK_TOP];
             task_pool[i].tss.fp = (uint64_t) &kstack_pool[i][KSTACK_TOP];
-            uart_puts("put function at task ");
-            uart_hex(i);
-            uart_send('\n');
             break;
         }
     }
@@ -114,7 +131,12 @@ void schedule()
 
 void sched_init()
 {
-    privilege_task_create(demo_task1, 100);
-    privilege_task_create(demo_task2, 100);
+    // privilege_task_create(demo_task1, 10);
+    // privilege_task_create(demo_task2, 10);
+
+    privilege_task_create(timer_task1, 5);
+    privilege_task_create(timer_task2, 5);
+
+    core_timer_enable(); // enable core timer interrupt.
     schedule();
 }

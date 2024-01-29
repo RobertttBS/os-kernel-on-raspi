@@ -3,20 +3,25 @@
 #include "shell.h"
 #include "initrd.h"
 #include "time.h"
+#include "sched.h"
 
 void core_timer_handler()
 {
     int seconds;
-    asm volatile(
+    asm volatile (
         "mrs x0, cntpct_el0     \n\t"
         "mrs x1, cntfrq_el0     \n\t"
         "udiv %0, x0, x1        \n\t": "=r" (seconds));
     uart_puts("seconds: ");
     uart_hex(seconds);
     uart_send('\n');
-    asm volatile(
+
+    // for requirement 2-1, 2-2 of OSDI 2020 Lab4. We update counter here.
+    current->counter--;
+
+    asm volatile (
         "mrs x0, cntfrq_el0     \n\t"
-        "mov x1, 2              \n\t"
+        "mov x1, 1              \n\t"
         "mul x0, x0, x1         \n\t"
         "msr cntp_tval_el0, x0  \n\t");
 }

@@ -13,7 +13,7 @@
 #define current get_current()
 
 /* 
-//Codes below is the structure used in linux 0.11. But useless in OSDI (hierarychy difference)
+// Codes below is used in linux 0.11. But useless in OSDI (hierarychy difference)
 #define INIT_TASK \
 { \
     .task_id = 0, \

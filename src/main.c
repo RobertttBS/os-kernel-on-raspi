@@ -42,12 +42,13 @@ void main()
 
     fdt_init();
     fdt_traverse(initramfs_callback);
+    print_current_el(); // read the current level from system register.
 
     task_init();
 
-    disable_interrupt();
+    // disable_interrupt();
+    enable_interrupt();
     
-    print_current_el(); // read the current level from system register.
 
 
     sched_init(); // start schedule
