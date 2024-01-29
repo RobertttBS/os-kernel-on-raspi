@@ -4,7 +4,9 @@
 #include "uart.h"
 #include "stdint.h"
 
-#define TASK_POOL_SIZE 64
+#define NR_TASKS 64
+#define FIRST_TASK task_pool[0]
+#define LAST_TASK task_pool[NR_TASKS - 1]
 #define KSTACK_SIZE 4096
 #define KSTACK_TOP (KSTACK_SIZE - 16)
 #define PAGE_SIZE 4096
@@ -15,7 +17,7 @@
 #define INIT_TASK \
 { \
     .task_id = 0, \
-    .status = TASK_RUNNING, \
+    .state = TASK_RUNNING, \
     .priority = 1, \
     .counter = 1, \
     .tss = { \
@@ -37,7 +39,7 @@
 }
 */
 
-enum task_status {
+enum task_state {
     TASK_RUNNING,
     TASK_INTERRUPTIBLE,
     TASK_UNINTERRUPTIBLE,
@@ -64,14 +66,14 @@ struct task_state_segment { // cpu context
 
 struct task_struct {
     unsigned int task_id;
-    enum task_status status;
+    enum task_state state;
     unsigned int priority;
     unsigned int counter;
     struct task_state_segment tss; // cpu context
 };
 
-extern char kstack_pool[TASK_POOL_SIZE][KSTACK_SIZE];
-extern struct task_struct task_pool[TASK_POOL_SIZE];
+extern char kstack_pool[NR_TASKS][KSTACK_SIZE];
+extern struct task_struct task_pool[NR_TASKS];
 // extern struct task_struct *current;
 
 /* function in schedule.S */
@@ -83,7 +85,7 @@ extern void update_current(struct task_struct *next);
 void task_init(); // task init is to setup everything about task and the first task.
 void sched_init();
 void context_switch(struct task_struct *next);
-void privilege_task_create(void (*func)());
+void privilege_task_create(void (*func)(), unsigned int priority);
 void schedule();
 
 
