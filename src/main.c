@@ -46,21 +46,16 @@ void main()
 
     task_init();
 
-    // disable_interrupt();
-    enable_interrupt();
-    
-
+    disable_interrupt();
 
     sched_init(); // start schedule
-
-
 
     /* Switch to el0 before running shell. Unnessasary in lab 4*/
     // move_to_user_mode();
     while(1) {
-        uart_puts("# ");
-        char cmd[CMD_LEN];
-        shell_input(cmd);
-        shell_controller(cmd);
+        // uart_puts("# ");
+        // char cmd[CMD_LEN];
+        // shell_input(cmd);
+        // shell_controller(cmd);
     }
 }

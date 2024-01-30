@@ -16,8 +16,9 @@ void core_timer_handler()
     uart_hex(seconds);
     uart_send('\n');
 
-    // for requirement 2-1, 2-2 of OSDI 2020 Lab4. We update counter here.
-    current->counter--;
+    // We update counter here. If counter is 0, we schedule.
+    if (--current->counter == 0)
+        schedule();
 
     asm volatile (
         "mrs x0, cntfrq_el0     \n\t"

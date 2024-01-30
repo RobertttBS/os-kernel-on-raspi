@@ -9,6 +9,8 @@
 #define LAST_TASK task_pool[NR_TASKS - 1]
 #define KSTACK_SIZE 4096
 #define KSTACK_TOP (KSTACK_SIZE - 16)
+#define USTACK_SIZE 4096
+#define USTACK_TOP (USTACK_SIZE - 16)
 #define PAGE_SIZE 4096
 #define current get_current()
 
@@ -72,9 +74,9 @@ struct task_struct {
     struct task_state_segment tss; // cpu context
 };
 
-extern char kstack_pool[NR_TASKS][KSTACK_SIZE];
 extern struct task_struct task_pool[NR_TASKS];
-// extern struct task_struct *current;
+extern char kstack_pool[NR_TASKS][KSTACK_SIZE];
+extern char ustack_pool[NR_TASKS][USTACK_SIZE];
 
 /* function in schedule.S */
 extern struct task_struct *get_current();
@@ -86,6 +88,7 @@ void task_init(); // task init is to setup everything about task and the first t
 void sched_init();
 void context_switch(struct task_struct *next);
 void privilege_task_create(void (*func)(), unsigned int priority);
+void do_exec(void (*func)());
 void schedule();
 
 

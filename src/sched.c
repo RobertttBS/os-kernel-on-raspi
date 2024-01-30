@@ -1,8 +1,11 @@
 #include "delays.h"
 #include "sched.h"
+#include "exception.h"
+#include "exec.h"
 
-char kstack_pool[NR_TASKS][KSTACK_SIZE];
 struct task_struct task_pool[NR_TASKS];
+char kstack_pool[NR_TASKS][KSTACK_SIZE];
+char ustack_pool[NR_TASKS][USTACK_SIZE];
 
 /* 
 // Codes below is the structure used in linux 0.11. But useless in osdi (hierarychy difference)
@@ -59,21 +62,45 @@ void demo_task2()
 void timer_task1()
 {
     while (1) {
-        if (current->counter == 0) {
-            uart_puts("timer task1 done. Reschedule.\n");
-            schedule();
-        }
+        uart_puts("kernel timer task1.\n");
+        wait_sec(1);
     }
 }
 
 void timer_task2()
 {
     while (1) {
-        if (current->counter == 0) {
-            uart_puts("timer task2 done. Reschedule.\n");
-            schedule();
-        }
+        uart_puts("kernel timer task2.\n");
+        wait_sec(1);
     }
+}
+
+void user_task1()
+{
+    while (1) {
+        uart_puts("user task1\n");
+        int count = 1000000000;
+        while (count--);
+    }
+}
+
+void user_task2()
+{
+    while (1) {
+        uart_puts("user task2\n");
+        int count = 1000000000;
+        while (count--);
+    }
+}
+
+void demo_do_exec1()
+{
+    do_exec(user_task1);
+}
+
+void demo_do_exec2()
+{
+    do_exec(user_task2);
 }
 
 void print_task(int i)
@@ -131,12 +158,21 @@ void schedule()
 
 void sched_init()
 {
+    /* for requirement 1 */
     // privilege_task_create(demo_task1, 10);
     // privilege_task_create(demo_task2, 10);
 
-    privilege_task_create(timer_task1, 5);
-    privilege_task_create(timer_task2, 5);
+    /* for requirement 2 */
+    // privilege_task_create(timer_task1, 5);
+    // privilege_task_create(timer_task2, 5);
 
-    core_timer_enable(); // enable core timer interrupt.
+    /* for requirement 3 */
+    privilege_task_create(demo_do_exec1, 5);
+    privilege_task_create(demo_do_exec2, 5);
+
+    // enable_interrupt(); // for requirement 2 of OSDI 2020 Lab4. We enable interrupt here.
+
+
+    core_timer_enable(); // enable core timer.
     schedule();
 }
