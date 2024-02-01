@@ -2,6 +2,7 @@
 #include "sched.h"
 #include "exception.h"
 #include "exec.h"
+#include "time.h"
 
 struct task_struct task_pool[NR_TASKS];
 char kstack_pool[NR_TASKS][KSTACK_SIZE];
@@ -35,7 +36,6 @@ void context_switch(struct task_struct *next)
 {
     struct task_struct *prev = current; // the current task_struct address
     update_current(next);
-    next->counter--; // Currently, I update counter here. But i think it should be updated in timer interrupt at labs behind.
     switch_to(&prev->tss, &next->tss);
 }
 
@@ -171,6 +171,7 @@ void sched_init()
     privilege_task_create(demo_do_exec2, 5);
 
     // enable_interrupt(); // for requirement 2 of OSDI 2020 Lab4. We enable interrupt here.
+    disable_interrupt();
 
 
     core_timer_enable(); // enable core timer.

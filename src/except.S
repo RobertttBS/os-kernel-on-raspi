@@ -1,5 +1,7 @@
 #include "reg.h"
 
+// Why i cannot include "exception.h" here?
+
 .global from_el2_to_el1
 from_el2_to_el1:
     ldr x1, =0

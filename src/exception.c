@@ -5,7 +5,7 @@
 #include "time.h"
 #include "sched.h"
 
-void core_timer_handler()
+void print_core_timer_sec()
 {
     int seconds;
     asm volatile (
@@ -15,15 +15,27 @@ void core_timer_handler()
     uart_puts("seconds: ");
     uart_hex(seconds);
     uart_send('\n');
+}
 
+void do_timer()
+{
     // We update counter here. If counter is 0, we schedule.
-    if (--current->counter == 0)
-        schedule();
+    if (--current->counter > 0)
+        return;
+    schedule();
+}
 
+void core_timer_handler()
+{
+    print_core_timer_sec(); // print current time
+
+    do_timer();
+
+    // setup next timer
     asm volatile (
         "mrs x0, cntfrq_el0     \n\t"
-        "mov x1, 1              \n\t"
-        "mul x0, x0, x1         \n\t"
+        // "mov x1, 1              \n\t"
+        // "mul x0, x0, x1         \n\t"
         "msr cntp_tval_el0, x0  \n\t");
 }
 
