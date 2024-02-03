@@ -4,7 +4,7 @@ update_current:
     msr tpidr_el1, x0 // set current task (put task_struct pointer in tpidr_el1)
     ret
 
-
+/* Just store the current process state */
 .global switch_to
 switch_to:
     mov x9, sp
@@ -24,7 +24,7 @@ switch_to:
     ldp fp, lr, [x1, 16 * 5]
     ldr x9, [x1, 16 * 6]
     mov sp,  x9
-    //msr tpidr_el1, x1 // set current task (put task_struct pointer in tpidr_el1)
+    //msr tpidr_el1, x1 // set current task, but can't be done here. Don't know why.
     ret
 
 

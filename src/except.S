@@ -19,7 +19,8 @@ from_el2_to_el1:
 
     msr elr_el2, lr
 
-    mov x0, 0x60000
+    /* After eret, sp will be setup accordinge to sp_el1 */
+    mov x0, #0x60000
     msr sp_el1, x0
 
     eret // return to EL1
@@ -27,7 +28,7 @@ from_el2_to_el1:
 .global from_el1_to_el0
 from_el1_to_el0:
     mov x0, 0x40000
-    msr sp_el0, x0
+    msr sp_el0, x0 // el1's sp will be 0x40000
 
     mov x1, #0x0 // same effect as `ldr x1, =0`
     msr spsr_el1, x1
@@ -55,11 +56,10 @@ from_el1_to_el0:
     stp x26, x27, [sp ,16 * 13]
     stp x28, x29, [sp ,16 * 14]
 
-    // Lab4: save sp_el0, spsr_el1, elr_el1 as well
+    /* Lab4: save sp_el0, spsr_el1, elr_el1 for user task */
     mrs x21, sp_el0
     stp x30, x21, [sp, 16 * 15]
 
-    // save spsr_el1 and elr_el1
     mrs x21, spsr_el1
     mrs x22, elr_el1
     stp x21, x22, [sp, 16 * 16]
@@ -67,7 +67,7 @@ from_el1_to_el0:
 
 // load general registers from stack
 .macro load_all
-    // Lab4: restore sp_el0, spsr_el1, elr_el1 as well
+    /* Lab4: restore sp_el0, spsr_el1, elr_el1 for user task. */
     ldp x30, x21, [sp, 16 * 15]
     msr sp_el0, x21
 
@@ -96,7 +96,7 @@ from_el1_to_el0:
 .align 11 // vector table should be aligned to 0x800
 .global exception_vector_table
 exception_vector_table:
-    // Exception from the current EL while using SP_EL0
+    /* Exception from the current EL while using SP_EL0 */
     .align 7 // synchronous
     b non_handler
     .align 7 // irq
@@ -106,7 +106,7 @@ exception_vector_table:
     .align 7 // serr
     b non_handler
 
-    // Exception from the current EL while using SP_ELx (x = 1 or 2)
+    /* Exception from the current EL while using SP_ELx (x = 1 or 2) */
     .align 7 // synchronous
     b exception_handler // el1 `svc` triggers this
     .align 7 // irq
@@ -116,7 +116,7 @@ exception_vector_table:
     .align 7 // serr
     b non_handler
 
-    // Exception from a lower Exception level and at least one lower Exception level uses AArch64. User program svc here
+    /* Exception from a lower Exception level and at least one lower Exception level uses AArch64. User program svc here */
      .align 7 // synchronous
     b exception_handler
     .align 7 // irq
@@ -126,7 +126,7 @@ exception_vector_table:
     .align 7 // serr
     b non_handler
 
-    // Exception from a lower Exception level and all lower Exception levels use AArch32
+    /* Exception from a lower Exception level and all lower Exception levels use AArch32 */
     .align 7 // synchronous
     b non_handler
     .align 7 // irq
@@ -149,6 +149,7 @@ exception_handler:
     mrs     x2, spsr_el1
     mrs     x3, far_el1
     //bl exc_handler // general exception handler
+    mov     x4, sp // for system call's trapframe
     bl svc_handler
     load_all
     eret
@@ -159,9 +160,15 @@ irq_handler:
     mrs     x1, elr_el1
     mrs     x2, spsr_el1
     mrs     x3, far_el1
+    //mrs     x4, sp_el0
     bl irq_router
     load_all
     eret
 
 non_handler:
     b non_handler
+
+.global exit_kernel
+exit_kernel:
+    load_all
+    eret

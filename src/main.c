@@ -32,6 +32,7 @@
 #include "initrd.h"
 #include "exception.h"
 #include "sched.h"
+#include "syscall.h"
 
 #define CMD_LEN 128
 
@@ -46,16 +47,23 @@ void main()
 
     task_init();
 
-    disable_interrupt();
+    disable_interrupt(); // disable interrupt at EL1
 
     sched_init(); // start schedule
 
     /* Switch to el0 before running shell. Unnessasary in lab 4*/
-    // move_to_user_mode();
+    move_to_user_mode();
+
+    // printf("Task id %d\n", get_taskid());
+
+    // char buff[100];
+    // printf("user input %d char\n", uart_read(buff, 10)); // demo syscall: uart_read
+    // uart_write("Hello from user mode\n", 21); // demo syscall: uart_write
+    
     while(1) {
-        // uart_puts("# ");
-        // char cmd[CMD_LEN];
-        // shell_input(cmd);
-        // shell_controller(cmd);
+        uart_puts("# ");
+        char cmd[CMD_LEN];
+        shell_input(cmd);
+        shell_controller(cmd);
     }
 }

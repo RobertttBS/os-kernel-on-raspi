@@ -14,6 +14,8 @@
 #define PAGE_SIZE 4096
 #define current get_current()
 
+#define USER_TASK_PRIORITY 10
+
 /* 
 // Codes below is used in linux 0.11. But useless in OSDI (hierarychy difference)
 #define INIT_TASK \
@@ -41,13 +43,17 @@
 }
 */
 
-enum task_state {
-    TASK_RUNNING,
-    TASK_INTERRUPTIBLE,
-    TASK_UNINTERRUPTIBLE,
-    TASK_ZOMBIE,
-    TASK_STOPPED,
-};
+/* Used in tsk->state*/
+#define TASK_RUNNING            0x00
+#define TASK_INTERRUPTIBLE      0x01
+#define TASK_UNINTERRUPTIBLE    0x02
+#define TASK_ZOMBIE             0x04
+#define TASK_STOPPED            0x08
+
+/* Used in tsk->exit_state*/
+#define EXIT_SUCCESS            0x000
+#define EXIT_DEAD               0x010
+#define EXIT_ZOMBIE             0x020
 
 struct task_state_segment { // cpu context
     uint64_t x19;
@@ -68,15 +74,18 @@ struct task_state_segment { // cpu context
 
 struct task_struct {
     unsigned int task_id;
-    enum task_state state;
-    unsigned int priority;
-    unsigned int counter;
+    unsigned int state;
+    long priority;
+    long counter;
+
+    int exit_state;
     struct task_state_segment tss; // cpu context
 };
 
 extern struct task_struct task_pool[NR_TASKS];
 extern char kstack_pool[NR_TASKS][KSTACK_SIZE];
 extern char ustack_pool[NR_TASKS][USTACK_SIZE];
+extern int num_running_task;
 
 /* function in schedule.S */
 extern struct task_struct *get_current();
@@ -87,8 +96,8 @@ extern void update_current(struct task_struct *next);
 void task_init(); // task init is to setup everything about task and the first task.
 void sched_init();
 void context_switch(struct task_struct *next);
-void privilege_task_create(void (*func)(), unsigned int priority);
-void do_exec(void (*func)());
+int find_empty_task();
+int privilege_task_create(void (*func)(), long priority); // return the task_id
 void schedule();
 
 

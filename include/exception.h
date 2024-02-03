@@ -18,6 +18,8 @@
 #define IRQ_DISABLE2    ((volatile unsigned int*)(IRQ_BASE+0x00000220)) // irq disable 2
 #define IRQ_DISABLE_BASIC ((volatile unsigned int*)(IRQ_BASE+0x00000224)) // irq disable basic
 
+extern void exit_kernel();
+
 static inline void move_to_user_mode()
 {
     asm volatile("bl from_el1_to_el0    \n\t");

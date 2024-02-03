@@ -3,10 +3,12 @@
 #include "exception.h"
 #include "exec.h"
 #include "time.h"
+#include "demo.h"
 
 struct task_struct task_pool[NR_TASKS];
 char kstack_pool[NR_TASKS][KSTACK_SIZE];
 char ustack_pool[NR_TASKS][USTACK_SIZE];
+int num_running_task = 0;
 
 /* 
 // Codes below is the structure used in linux 0.11. But useless in osdi (hierarychy difference)
@@ -27,9 +29,13 @@ void task_init()
 
     // TODO: Understand how to deal with the task[0] (kernel). At linux 0.11, it is a special task.
     task_pool[0].state = TASK_RUNNING;
-    task_pool[0].priority = 1000;
-    task_pool[0].counter = 1000;
+    task_pool[0].priority = 1;
+    task_pool[0].counter = 1;
+
+    // I don't have to initialize the tss of task[0], because when it switch to other task, the tss of task[0] will be saved to its own stack.
+    // Maybe I should initialize the tss.sp or sp ?
     update_current(&task_pool[0]);
+    num_running_task = 1;
 }
 
 void context_switch(struct task_struct *next)
@@ -39,98 +45,29 @@ void context_switch(struct task_struct *next)
     switch_to(&prev->tss, &next->tss);
 }
 
-void demo_task1()
-{
-    while (1) {
-        uart_puts("demo task1\n");
-        wait_sec(1);
-        schedule();
-        // context_switch(&task_pool[2]); // for requirement 1-3
-    }
-}
-
-void demo_task2()
-{
-    while (1) {
-        uart_puts("demo task2\n");
-        wait_sec(1);
-        schedule();
-        // context_switch(&task_pool[1]); // for requirement 1-3
-    }
-}
-
-void timer_task1()
-{
-    while (1) {
-        uart_puts("kernel timer task1.\n");
-        wait_sec(1);
-    }
-}
-
-void timer_task2()
-{
-    while (1) {
-        uart_puts("kernel timer task2.\n");
-        wait_sec(1);
-    }
-}
-
-void user_task1()
-{
-    while (1) {
-        uart_puts("user task1\n");
-        int count = 1000000000;
-        while (count--);
-    }
-}
-
-void user_task2()
-{
-    while (1) {
-        uart_puts("user task2\n");
-        int count = 1000000000;
-        while (count--);
-    }
-}
-
-void demo_do_exec1()
-{
-    do_exec(user_task1);
-}
-
-void demo_do_exec2()
-{
-    do_exec(user_task2);
-}
-
-void print_task(int i)
-{
-    uart_puts("task pool: ");
-    uart_hex(i);
-    uart_puts(" state: ");
-    uart_hex(task_pool[i].state);
-    uart_puts(" counter: ");
-    uart_hex(task_pool[i].counter);
-    uart_send('\n');
-}
-
-void privilege_task_create(void (*func)(), unsigned int priority)
+int find_empty_task()
 {
     int i;
+    for (i = 1; i < NR_TASKS; i++)
+        if (task_pool[i].state == TASK_STOPPED)
+            break;
+    if (i != NR_TASKS)
+        num_running_task++;
+    return i;
+}
 
-    for (i = 1; i < NR_TASKS; i++) {
-        if (task_pool[i].state == TASK_STOPPED) {
+int privilege_task_create(void (*func)(), long priority)
+{
+    int i = find_empty_task();
+
+    if (i != NR_TASKS) {
             task_pool[i].state = TASK_RUNNING;
             task_pool[i].priority = priority;
             task_pool[i].counter = priority;
             task_pool[i].tss.lr = (uint64_t) func;
             task_pool[i].tss.sp = (uint64_t) &kstack_pool[i][KSTACK_TOP];
-            task_pool[i].tss.fp = (uint64_t) &kstack_pool[i][KSTACK_TOP];
-            break;
-        }
-    }
-
-    if (i == NR_TASKS) {
+            task_pool[i].tss.fp = (uint64_t) &kstack_pool[i][KSTACK_TOP];      
+    } else {
         uart_puts("task pool is full, can't create a new task.\n");
         while (1);
     }
@@ -139,20 +76,35 @@ void privilege_task_create(void (*func)(), unsigned int priority)
 /* Select the task with the highest counter to run. If all tasks' counter is 0, then update all tasks' counter with their priority. */
 void schedule()
 {
-    int i, c = 0, next = 0;
+    int i = NR_TASKS, c = -1, next = 0;
     while (1) {
-        for (i = 1; i < NR_TASKS; i++) {
+        while (--i) {
             if (task_pool[i].state == TASK_RUNNING && task_pool[i].counter > c) {
-                c = task_pool[i].counter, next = i;
+                c = task_pool[i].counter;
+                next = i;
             }
         }
         if (c)
             break;
-        for (i = 1; i < NR_TASKS; i++) // prevent return to task0
+        for (i = 0; i < NR_TASKS; i++) // prevent return to task0
             if (task_pool[i].state == TASK_RUNNING)
                 task_pool[i].counter = (task_pool[i].counter >> 1) + task_pool[i].priority;
     }
+    printf("schedule to task %d\n", next);
     context_switch(&task_pool[next]);
+}
+
+void idle() {
+    while (1) {
+        if(num_running_task == 1) {
+            break;
+        }
+        schedule();
+        wait_sec(1);
+        // wait_msec(100);
+    }
+    printf("Test finished\n");
+    while(1);
 }
 
 
@@ -167,13 +119,17 @@ void sched_init()
     // privilege_task_create(timer_task2, 5);
 
     /* for requirement 3 */
-    privilege_task_create(demo_do_exec1, 5);
-    privilege_task_create(demo_do_exec2, 5);
+    // privilege_task_create(demo_do_exec1, 5);
+    // privilege_task_create(demo_do_exec2, 5);
 
-    // enable_interrupt(); // for requirement 2 of OSDI 2020 Lab4. We enable interrupt here.
-    disable_interrupt();
+    /* for requirement 4 */
+    privilege_task_create(user_test, 5);
+    core_timer_enable();
+    idle();
 
+    // enable_interrupt(); // for requirement 2 of OSDI 2020 Lab4. We enable interrupt here. Because we want timer interrupt at EL1.
 
-    core_timer_enable(); // enable core timer.
-    schedule();
+    // core_timer_enable(); // enable core timer.
+
+    // schedule();
 }
