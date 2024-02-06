@@ -6,12 +6,14 @@
 #include "initrd.h"
 #include "stddef.h"
 
-extern uint64_t __dtb_address; // the address of __dtb_address is 0x7fff0 (defined in linker file). The value of __dtb_address is set in start.S.
 fdt_header *dtb_address;
 
 void fdt_init()
 {
+    uint64_t __dtb_address;
+    asm volatile("mov %0, x18"::"r"(__dtb_address));
     dtb_address = (fdt_header *) __dtb_address;
+    printf("DTB address: %x\n", dtb_address);
 }
 
 void fdt_traverse(void (*callback)(fdt_prop *, char *, char *))

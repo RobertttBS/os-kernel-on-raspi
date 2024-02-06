@@ -25,7 +25,9 @@
 #ifndef __GPIO_H__
 #define __GPIO_H__
 
-#define MMIO_BASE       0x3F000000
+#include "mm.h"
+
+#define MMIO_BASE       (0x3F000000 | KERNEL_VADDR_BASE)
 
 #define GPFSEL0         ((volatile unsigned int*)(MMIO_BASE+0x00200000))
 #define GPFSEL1         ((volatile unsigned int*)(MMIO_BASE+0x00200004))

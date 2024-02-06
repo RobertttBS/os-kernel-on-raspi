@@ -4,23 +4,26 @@
 
 .global from_el2_to_el1
 from_el2_to_el1:
-    ldr x1, =0
-    msr sctlr_el1, x1 // disable MMU
-
-    mov x0, #(1 << 31) // EL1 uses aarch64
+    mov x0, HCR_EL2_CONFIG // EL1 uses aarch64
     msr hcr_el2, x0
 
+    /* Disable MMU for el1. We did this at previous Labs, but enable MMU at Lab5 */
+    //mov x1, 0x0
+    //msr sctlr_el1, x1 // disable MMU
+
     // turn on the accessibility to SIMD and floating registers
-    ldr x1, =0x300000 // 0b11 << 20
+    mov x1, CPACR_EL1_CONFIG // 0b11 << 20
     msr cpacr_el1, x1
 
-    mov x0, 0x3c5 // EL1h (SPSel = 1) with interrupt disabled
+    mov x0, SPSR_EL2_CONFIG // EL1h (SPSel = 1) with interrupt disabled
     msr spsr_el2, x0
 
     msr elr_el2, lr
 
     /* After eret, sp will be setup accordinge to sp_el1 */
-    mov x0, #0x60000
+    //mov x0, #0x60000
+    //mov x0, __KERNEL_START_ADDR
+    ldr x0, =__KERNEL_START_ADDR
     msr sp_el1, x0
 
     eret // return to EL1
@@ -117,7 +120,7 @@ exception_vector_table:
     b non_handler
 
     /* Exception from a lower Exception level and at least one lower Exception level uses AArch64. User program svc here */
-     .align 7 // synchronous
+    .align 7 // synchronous
     b exception_handler
     .align 7 // irq
     b irq_handler
@@ -144,22 +147,22 @@ set_exception_vector_table:
 
 exception_handler:
     save_all
-    mrs     x0, esr_el1
-    mrs     x1, elr_el1
-    mrs     x2, spsr_el1
-    mrs     x3, far_el1
+    mrs x0, esr_el1
+    mrs x1, elr_el1
+    mrs x2, spsr_el1
+    mrs x3, far_el1
     //bl exc_handler // general exception handler
-    mov     x4, sp // for system call's trapframe
+    mov x4, sp // for system call's trapframe
     bl svc_handler
     load_all
     eret
 
 irq_handler:
     save_all
-    mrs     x0, esr_el1
-    mrs     x1, elr_el1
-    mrs     x2, spsr_el1
-    mrs     x3, far_el1
+    mrs x0, esr_el1
+    mrs x1, elr_el1
+    mrs x2, spsr_el1
+    mrs x3, far_el1
     //mrs     x4, sp_el0
     bl irq_router
     load_all

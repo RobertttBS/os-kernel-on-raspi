@@ -25,7 +25,7 @@ int sys_get_taskid(struct trapframe *trapframe)
 int sys_uart_read(struct trapframe *trapframe)
 {
     /* x0: buffer address, x1: buffer size */
-    char *buff_addr = trapframe->x[0];
+    char *buff_addr = (char *)trapframe->x[0];
     size_t buff_size = trapframe->x[1];
     for (int i = 0; i < buff_size; i++) {
         buff_addr[i] = uart_getc();

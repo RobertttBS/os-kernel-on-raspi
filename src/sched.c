@@ -29,8 +29,8 @@ void task_init()
 
     // TODO: Understand how to deal with the task[0] (kernel). At linux 0.11, it is a special task.
     task_pool[0].state = TASK_RUNNING;
-    task_pool[0].priority = 1;
-    task_pool[0].counter = 1;
+    task_pool[0].priority = 10;
+    task_pool[0].counter = 10;
 
     // I don't have to initialize the tss of task[0], because when it switch to other task, the tss of task[0] will be saved to its own stack.
     // Maybe I should initialize the tss.sp or sp ?
@@ -100,7 +100,7 @@ void idle() {
             break;
         }
         schedule();
-        wait_sec(1);
+        // wait_sec(1);
         // wait_msec(100);
     }
     printf("Test finished\n");
@@ -123,13 +123,13 @@ void sched_init()
     // privilege_task_create(demo_do_exec2, 5);
 
     /* for requirement 4 */
-    privilege_task_create(user_test, 5);
-    core_timer_enable();
-    idle();
+    // privilege_task_create(user_test, 5);
+    // core_timer_enable();
+    // idle();
 
     // enable_interrupt(); // for requirement 2 of OSDI 2020 Lab4. We enable interrupt here. Because we want timer interrupt at EL1.
 
-    // core_timer_enable(); // enable core timer.
+    core_timer_enable(); // enable core timer.
 
-    // schedule();
+    schedule();
 }

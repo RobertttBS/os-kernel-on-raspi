@@ -25,6 +25,8 @@
 
 .section ".text.boot"
 
+#include "mm.h"
+
 .global _start
 _start:
     // read cpu id, stop slave cores
@@ -35,21 +37,26 @@ _start:
 1:  wfe
     b       1b
 2:  // cpu id == 0, continue
-    // get the dtb address
-    ldr     x1, =__dtb_address
-    str     x0, [x1] // store the dtb address to the address given by the linker script. At beginning, the dtb address is stored in x0.
+    /* get the dtb address */
+    mov     x18, x0 // store the dtb address to x18, which is used as the first argument of the main function.
 
-    // set exception vector table
+    /* set exception vector table */
     bl      set_exception_vector_table
 
-    // change exception level to EL1
+    /* change exception level to EL1 */
     bl      from_el2_to_el1
+
+    bl      tcr_el1_setup
+    bl      mair_el1_setup
+
+    /* Setup page table */
+    bl      page_table_setup
     
-    // If we don't set the sp_elx before `eret`, we have to setup the stack pointer manually.
+    /* If we don't set the sp_elx before `eret`, we have to setup the stack pointer manually. */
     //ldr     x1, =_start
     //mov     sp, x1 // set stack pointer
 
-    // clear bss
+    /* clear bss */
     ldr     x1, =__bss_start
     ldr     w2, =__bss_size
 
@@ -58,7 +65,8 @@ _start:
     sub     w2, w2, #1
     cbnz    w2, 3b
 4:
-    // jump to C code, should not return
-    bl      main
-    // for failsafe, halt this core too
+    /* jump to C code, should not return */
+    ldr     x0, =main
+    br      x0
+    /* for failsafe, halt this core too */
     b       1b

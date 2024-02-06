@@ -47,19 +47,19 @@ void main()
 
     task_init();
 
-    disable_interrupt(); // disable interrupt at EL1
+    disable_interrupt(); // disable interrupt at EL1, for Lab 4.
 
-    sched_init(); // start schedule
+    // sched_init(); // start schedule and enable timer interrupt
 
-    /* Switch to el0 before running shell. Unnessasary in lab 4*/
-    move_to_user_mode();
 
     // printf("Task id %d\n", get_taskid());
 
     // char buff[100];
     // printf("user input %d char\n", uart_read(buff, 10)); // demo syscall: uart_read
     // uart_write("Hello from user mode\n", 21); // demo syscall: uart_write
-    
+
+    /* Switch to el0 before running shell. Unnessasary in lab 4*/
+    // move_to_user_mode(); // Lab5 not work, not setup VA for user mode.
     while(1) {
         uart_puts("# ");
         char cmd[CMD_LEN];
