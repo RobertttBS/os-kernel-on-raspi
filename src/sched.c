@@ -5,7 +5,7 @@
 #include "time.h"
 #include "demo.h"
 
-struct task_struct task_pool[NR_TASKS];
+volatile struct task_struct task_pool[NR_TASKS];
 char kstack_pool[NR_TASKS][KSTACK_SIZE];
 char ustack_pool[NR_TASKS][USTACK_SIZE];
 int num_running_task = 0;
