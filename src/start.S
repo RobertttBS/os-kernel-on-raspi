@@ -23,9 +23,9 @@
  *
  */
 
+#include "mm.h"
 .section ".text.boot"
 
-#include "mm.h"
 
 .global _start
 _start:
@@ -46,11 +46,8 @@ _start:
     /* change exception level to EL1 */
     bl      from_el2_to_el1
 
-    bl      tcr_el1_setup
-    bl      mair_el1_setup
-
-    /* Setup page table */
-    bl      page_table_setup
+    /* Setup boot virtual memory */
+    bl      mem_boot_init
     
     /* If we don't set the sp_elx before `eret`, we have to setup the stack pointer manually. */
     //ldr     x1, =_start

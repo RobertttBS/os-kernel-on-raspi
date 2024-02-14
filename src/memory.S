@@ -1,16 +1,11 @@
 #include "mm.h"
 
-
-.global tcr_el1_setup
-tcr_el1_setup:
+.global mem_boot_init
+mem_boot_init:
     /* set up TCR */
     ldr x0, = TCR_CONFIG_DEFAULT
     msr tcr_el1, x0
 
-    ret
-
-.global mair_el1_setup
-mair_el1_setup:
     /* Set up MAIR_EL1 */
     ldr x0, =( \
             (MAIR_DEVICE_nGnRnE << (MAIR_IDX_DEVICE_nGnRnE * 8)) | \
@@ -18,10 +13,7 @@ mair_el1_setup:
             )
     msr mair_el1, x0
 
-    ret
-
-.global page_table_setup
-page_table_setup:
+    /* Setup page table */
     mov x0, 0 // PGD's page frame address at 0x0
     mov x1, 0x1000 // PUD's page frame address at 0x1000, 4KB aligned
 
@@ -36,7 +28,7 @@ page_table_setup:
     
     mov x3, 0x40000000
     orr x3, x2, x3
-    str x3, [x1, 8] // 2nd 1GB mapped by the 2nd entry of PUD
+    str x3, [x1, 8] // 2nd 1GB mapped by the 2nd entry of PUD, but i do not have index in my virtual address for now?
 
     msr ttbr0_el1, x0 // load PGD to the buttom translation based register.
     msr ttbr1_el1, x0 // load PGD to the top translation based register.
