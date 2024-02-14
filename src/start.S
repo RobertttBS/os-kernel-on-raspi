@@ -48,6 +48,9 @@ _start:
 
     /* Setup boot virtual memory */
     bl      mem_boot_init
+
+    /* Setup the page table */
+    bl      mem_setup_page_table
     
     /* If we don't set the sp_elx before `eret`, we have to setup the stack pointer manually. */
     //ldr     x1, =_start

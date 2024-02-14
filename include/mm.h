@@ -33,5 +33,14 @@
 
 #define BOOT_PGD_ATTR                   (PD_TABLE)
 #define BOOT_PUD_ATTR                   (PD_ACCESS | (MAIR_IDX_DEVICE_nGnRnE << 2) | PD_BLOCK)
+#define PUD_DEVICE_BLOCK_ATTR           (PD_ACCESS | (MAIR_IDX_DEVICE_nGnRnE << 2) | PD_BLOCK)
+#define PUD_NORMAL_BLOCK_ATTR           (PD_ACCESS | (MAIR_IDX_NORMAL_NOCACHE << 2) | PD_BLOCK)
+
+#define PAGE_SIZE                       4096
+
+#define MMU_PGD_ADDR                    0x0000
+#define MMU_PUD_ADDR                    0x1000
+#define MMU_PMD_ADDR                    0x2000
+#define MMU_PTE_ADDR                    0x3000
 
 #endif
