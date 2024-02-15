@@ -20,9 +20,8 @@ from_el2_to_el1:
 
     msr elr_el2, lr
 
-    /* After eret, sp will be setup accordinge to sp_el1 */
+    /* After eret, sp will be setup accordinge to sp_el1, or we have to setup sp register manually. */
     //mov x0, #0x60000
-    //mov x0, __KERNEL_START_ADDR
     ldr x0, =__KERNEL_START_ADDR
     msr sp_el1, x0
 

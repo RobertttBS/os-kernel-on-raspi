@@ -46,15 +46,22 @@ _start:
     /* change exception level to EL1 */
     bl      from_el2_to_el1
 
-    /* Setup boot virtual memory */
-    bl      mem_boot_init
+    /* set up TCR */
+    ldr     x0, = TCR_CONFIG_DEFAULT
+    msr     tcr_el1, x0
 
-    /* Setup the page table */
-    bl      mem_setup_page_table
-    
-    /* If we don't set the sp_elx before `eret`, we have to setup the stack pointer manually. */
-    //ldr     x1, =_start
-    //mov     sp, x1 // set stack pointer
+    /* Set up MAIR_EL1 */
+    ldr     x0, =MAIR_CONFIG
+    msr     mair_el1, x0
+
+    mov     sp, 0x3c000000 // Before jumping to C code, set the stack pointer to 0x3c000000
+    bl      setup_page_table
+
+    /* Enable MMU */
+    mrs     x2, sctlr_el1
+    orr     x2, x2, 1
+    msr     sctlr_el1, x2 // enable MMU, cache remains disabled
+
 
     /* clear bss */
     ldr     x1, =__bss_start

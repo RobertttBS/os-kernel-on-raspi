@@ -24,17 +24,23 @@
 #define MAIR_IDX_DEVICE_nGnRnE          0
 #define MAIR_IDX_NORMAL_NOCACHE         1
 
+#define MAIR_CONFIG                     ((MAIR_DEVICE_nGnRnE << (MAIR_IDX_DEVICE_nGnRnE * 8)) | (MAIR_NORMAL_NOCACHE << (MAIR_IDX_NORMAL_NOCACHE * 8)))
+
 /* Page table entry configuration */
 #define PD_TABLE                        0b11
 #define PD_BLOCK                        0b01
+#define PD_PAGE                         0b11
 #define PD_INVALID                      0b00
 
 #define PD_ACCESS                       (1 << 10)
 
 #define BOOT_PGD_ATTR                   (PD_TABLE)
 #define BOOT_PUD_ATTR                   (PD_ACCESS | (MAIR_IDX_DEVICE_nGnRnE << 2) | PD_BLOCK)
-#define PUD_DEVICE_BLOCK_ATTR           (PD_ACCESS | (MAIR_IDX_DEVICE_nGnRnE << 2) | PD_BLOCK)
-#define PUD_NORMAL_BLOCK_ATTR           (PD_ACCESS | (MAIR_IDX_NORMAL_NOCACHE << 2) | PD_BLOCK)
+#define DEVICE_BLOCK_ATTR               (PD_ACCESS | (MAIR_IDX_DEVICE_nGnRnE << 2) | PD_BLOCK)
+#define NORMAL_BLOCK_ATTR               (PD_ACCESS | (MAIR_IDX_NORMAL_NOCACHE << 2) | PD_BLOCK)
+#define DEVICE_PAGE_ATTR                (PD_ACCESS | (MAIR_IDX_DEVICE_nGnRnE << 2) | PD_PAGE)
+#define NORMAL_PAGE_ATTR                (PD_ACCESS | (MAIR_IDX_NORMAL_NOCACHE << 2) | PD_PAGE)
+
 
 #define PAGE_SIZE                       4096
 
