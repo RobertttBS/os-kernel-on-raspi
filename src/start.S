@@ -26,7 +26,6 @@
 #include "mm.h"
 .section ".text.boot"
 
-
 .global _start
 _start:
     // read cpu id, stop slave cores
@@ -54,7 +53,7 @@ _start:
     ldr     x0, =MAIR_CONFIG
     msr     mair_el1, x0
 
-    mov     sp, 0x3c000000 // Before jumping to C code, set the stack pointer to 0x3c000000
+    mov     sp, 0x70000 // Before jumping to C code, set the stack pointer to 0x3c000000
     bl      setup_page_table
 
     /* Enable MMU */
@@ -62,6 +61,9 @@ _start:
     orr     x2, x2, 1
     msr     sctlr_el1, x2 // enable MMU, cache remains disabled
 
+    /* Then we have to set a proper stack pointer */
+    ldr     x0, =__KERNEL_START_ADDR
+    mov     sp, x0
 
     /* clear bss */
     ldr     x1, =__bss_start
@@ -72,7 +74,7 @@ _start:
     sub     w2, w2, #1
     cbnz    w2, 3b
 4:
-    /* jump to C code, should not return */
+    /* jump to C code, should not return. Using br will load the absolute address of main(). Using bl or b just jump by offset. */
     ldr     x0, =main
     br      x0
     /* for failsafe, halt this core too */

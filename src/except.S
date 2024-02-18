@@ -8,8 +8,8 @@ from_el2_to_el1:
     msr hcr_el2, x0
 
     /* Disable MMU for el1. We did this at previous Labs, but enable MMU at Lab5 */
-    //mov x1, 0x0
-    //msr sctlr_el1, x1 // disable MMU
+    mov x1, 0x0
+    msr sctlr_el1, x1 // disable MMU
 
     // turn on the accessibility to SIMD and floating registers
     mov x1, CPACR_EL1_CONFIG // 0b11 << 20
@@ -21,7 +21,6 @@ from_el2_to_el1:
     msr elr_el2, lr
 
     /* After eret, sp will be setup accordinge to sp_el1, or we have to setup sp register manually. */
-    //mov x0, #0x60000
     ldr x0, =__KERNEL_START_ADDR
     msr sp_el1, x0
 

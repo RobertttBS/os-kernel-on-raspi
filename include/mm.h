@@ -50,4 +50,15 @@
 
 #define PERIPH_MMIO_BASE                0x3F000000
 
-#endif
+
+#ifndef __ASSEMBLER__
+
+struct page {
+    int flags;
+    int count;
+};
+
+
+
+#endif // __ASSEMBLER__
+#endif // __MM_H__

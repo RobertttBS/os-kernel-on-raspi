@@ -11,7 +11,7 @@ fdt_header *dtb_address;
 void fdt_init()
 {
     uint64_t __dtb_address;
-    asm volatile("mov %0, x18"::"r"(__dtb_address));
+    asm volatile("mov %0, x18   \n\t":"=r"(__dtb_address)::);
     dtb_address = (fdt_header *) __dtb_address;
     printf("DTB address: %x\n", dtb_address);
 }

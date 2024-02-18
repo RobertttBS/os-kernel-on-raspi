@@ -5,7 +5,7 @@
 #include "time.h"
 #include "demo.h"
 
-volatile struct task_struct task_pool[NR_TASKS];
+struct task_struct task_pool[NR_TASKS];
 char kstack_pool[NR_TASKS][KSTACK_SIZE];
 char ustack_pool[NR_TASKS][USTACK_SIZE];
 int num_running_task = 0;
@@ -71,6 +71,7 @@ int privilege_task_create(void (*func)(), long priority)
         uart_puts("task pool is full, can't create a new task.\n");
         while (1);
     }
+    return i;
 }
 
 /* Select the task with the highest counter to run. If all tasks' counter is 0, then update all tasks' counter with their priority. */

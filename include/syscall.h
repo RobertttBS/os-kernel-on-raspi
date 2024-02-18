@@ -22,7 +22,7 @@
  * considering the portability, we should split the content in syscall.h.
  * Content above is the content for systemcall.S and content below is for syscall.c.
  * */
-#ifndef __ASSEMBLY__ // Content below is not included in assembly file. (__ASSEMBLY__ is defined in assembly file)
+#ifndef __ASSEMBLER__ // Content below is not included in assembly file. (__ASSEMBLY__ is defined in assembly file)
 
 
 #include "stdlib.h"

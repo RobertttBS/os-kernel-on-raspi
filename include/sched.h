@@ -82,7 +82,7 @@ struct task_struct {
     struct task_state_segment tss; // cpu context
 };
 
-extern volatile struct task_struct task_pool[NR_TASKS];
+extern struct task_struct task_pool[NR_TASKS];
 extern char kstack_pool[NR_TASKS][KSTACK_SIZE];
 extern char ustack_pool[NR_TASKS][USTACK_SIZE];
 extern int num_running_task;
