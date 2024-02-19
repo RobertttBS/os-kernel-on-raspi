@@ -24,9 +24,8 @@
  * */
 #ifndef __ASSEMBLER__ // Content below is not included in assembly file. (__ASSEMBLY__ is defined in assembly file)
 
-
 #include "stdlib.h"
-
+#include "stdint.h"
 
 struct trapframe {
     uint64_t x[31];

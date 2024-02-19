@@ -40,23 +40,30 @@
 #define DEVICE_PAGE_ATTR                (PD_ACCESS | (MAIR_IDX_DEVICE_nGnRnE << 2) | PD_PAGE)
 #define NORMAL_PAGE_ATTR                (PD_ACCESS | (MAIR_IDX_NORMAL_NOCACHE << 2) | PD_PAGE)
 
-
 #define PAGE_SIZE                       4096
 
+/* We use 1 PGD, 1 PUD and 512 PMD*/
 #define MMU_PGD_ADDR                    0x0000
-#define MMU_PUD_ADDR                    0x1000
-#define MMU_PMD_ADDR                    0x2000
-#define MMU_PTE_ADDR                    0x3000
+#define MMU_PUD_ADDR                    (MMU_PGD_ADDR + 0x1000)
+#define MMU_PMD_ADDR                    (MMU_PGD_ADDR + 0x2000)
+#define MMU_PTE_ADDR                    (MMU_PGD_ADDR + 0x3000)
 
 #define PERIPH_MMIO_BASE                0x3F000000
 
-
 #ifndef __ASSEMBLER__
 
+#define PAGE_FRAMES_NUM                 1000
+
+
 struct page {
-    int flags;
-    int count;
+    unsigned char flags; /* 0 for empty, 1 for using */
 };
+
+/**
+ *  I can get the page information by the upper bit of physicall memory address
+ * e.g. PA 0x000123fff, for 4KB page, the index is 0x000123
+ * There are only 1000 page frames, so we only keep track of the first 1000 page frames */
+extern struct page pages[PAGE_FRAMES_NUM];
 
 
 

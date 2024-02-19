@@ -56,6 +56,8 @@ _start:
     mov     sp, 0x70000 // Before jumping to C code, set the stack pointer to 0x3c000000
     bl      setup_page_table
 
+    bl      page_frame_init // init the page frame struct
+
     /* Enable MMU */
     mrs     x2, sctlr_el1
     orr     x2, x2, 1
