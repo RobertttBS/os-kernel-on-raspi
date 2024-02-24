@@ -28,6 +28,7 @@
 #include "file.h"
 #include "initrd.h"
 #include "stdint.h"
+#include "memory.h"
 
 #define buf_size 128
 

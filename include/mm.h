@@ -43,20 +43,20 @@
 #define PAGE_SIZE                       4096
 
 /* We use 1 PGD, 1 PUD and 512 PMD*/
-#define MMU_PGD_ADDR                    0x0000
+#define MMU_PGD_ADDR                    (0x0000)
 #define MMU_PUD_ADDR                    (MMU_PGD_ADDR + 0x1000)
 #define MMU_PMD_ADDR                    (MMU_PGD_ADDR + 0x2000)
 #define MMU_PTE_ADDR                    (MMU_PGD_ADDR + 0x3000)
 
-#define PERIPH_MMIO_BASE                0x3F000000
+#define PERIPH_MMIO_BASE                (0x3F000000)
 
 #ifndef __ASSEMBLER__
 
-#define PAGE_FRAMES_NUM                 1000
+#define PAGE_FRAMES_NUM                 (1000)
 
 
 struct page {
-    unsigned char flags; /* 0 for empty, 1 for using */
+    unsigned char count; /* 0 for empty, 1 for using */
 };
 
 /**

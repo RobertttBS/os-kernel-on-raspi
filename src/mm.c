@@ -1,4 +1,5 @@
 #include "mm.h"
+#include "sched.h"
 
 struct page pages[PAGE_FRAMES_NUM];
 
@@ -13,11 +14,12 @@ struct page pages[PAGE_FRAMES_NUM];
 extern unsigned char _start;
 extern unsigned char _end;
 
+/* Allocate a page frame and return its physical memory */
 unsigned long page_alloc(void)
 {
     for (int i = 0; i < PAGE_FRAMES_NUM; i++) {
-        if (pages[i].flags == 0) {
-            pages[i].flags = 1;
+        if (pages[i].count == 0) {
+            pages[i].count = 1;
             return i << 12;
         }
     }
@@ -27,11 +29,10 @@ unsigned long page_alloc(void)
 /* Just supposed that the input parameter is physical memory address*/
 void page_free(unsigned long addr)
 {
-    if (pages[MAP_NR(addr)].flags--)
+    if (pages[MAP_NR(addr)].count--)
         return;
     /* We should not be here, because there's no process using this page */
     while (1);
-    
 }
 
 /* Initialize the page frame struct */
@@ -43,17 +44,19 @@ void page_frame_init(void)
     for (int i = 0; i < PAGE_FRAMES_NUM; i++) {
         // unsigned long addr = i << 12;
         if (i < 4) {
-            pages[i].flags = 1; // The first four page frames are for page tables.
+            pages[i].count = 1; // The first four page frames are for page tables.
         } else if ((i << 12) >= kernel_start && (i << 12) <= kernel_end) {
-            pages[i].flags = 1; // for kernel usage
+            pages[i].count = 1; // for kernel usage
+        } else if ((i << 12) >= PERIPH_MMIO_BASE) {
+            pages[i].count = 1; // for device usage
         } else {
-            pages[i].flags = 0; // for user usage
+            pages[i].count = 0; // for user usage
         }
     }
 }
 
-/* Virtual address to physical address (table walk) */
-unsigned long va_to_pa(unsigned long va)
+/* Virtual address to physical address (table walk), but only for kernel page table, so I comment it */
+unsigned long virt_to_phys(unsigned long va)
 {
     unsigned long pgd_index = (va >> 39) & 0x1ff;
     unsigned long pud_index = (va >> 30) & 0x1ff;
@@ -73,13 +76,13 @@ unsigned long va_to_pa(unsigned long va)
 }
 
 /* Virtual address to PFN (page frame number) */
-int va_to_pfn(unsigned long va)
+int virt_to_pfn(unsigned long va)
 {
-    return (va_to_pa(va)) >> 12;
+    return (virt_to_phys(va)) >> 12;
 }
 
 /* Not sure whether we need this function. */
-unsigned long pfn_to_pa(int pfn)
+unsigned long pfn_to_phys(int pfn)
 {
     return pfn << 12;
 }
@@ -124,4 +127,26 @@ void setup_page_table(void)
     asm volatile("msr ttbr0_el1, %0" : : "r" (MMU_PGD_ADDR));
     asm volatile("msr ttbr1_el1, %0" : : "r" (MMU_PGD_ADDR));
     return;
+}
+
+
+/* Get a pgd and store it at struct mm_struct. Return the physical address of pgd */
+unsigned long get_pgd(struct mm_struct *mm)
+{
+    unsigned long *pgd, *pud, *pmd, *pte;
+    unsigned long page;
+
+    pgd = page_alloc();
+    pud = page_alloc();
+    pmd = page_alloc();
+    pte = page_alloc();
+    page = page_alloc();
+    pgd[0] = (unsigned long) pud | NORMAL_PAGE_ATTR;
+    pud[0] = (unsigned long) pmd | NORMAL_PAGE_ATTR;
+    pmd[0] = (unsigned long) pte | NORMAL_PAGE_ATTR;
+    pte[0] = (unsigned long) page | NORMAL_PAGE_ATTR;
+
+    mm->pgd = pgd;
+    
+    return mm->pgd;
 }

@@ -1,9 +1,10 @@
 #include "delays.h"
-#include "sched.h"
 #include "exception.h"
 #include "exec.h"
 #include "time.h"
 #include "demo.h"
+#include "stdint.h"
+#include "sched.h"
 
 struct task_struct task_pool[NR_TASKS];
 char kstack_pool[NR_TASKS][KSTACK_SIZE];
