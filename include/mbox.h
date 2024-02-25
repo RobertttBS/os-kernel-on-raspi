@@ -48,6 +48,7 @@ extern volatile unsigned int mbox[36];
 #define MBOX_TAG_LAST           0
 
 int mbox_call(unsigned char ch);
+int __mbox_call(unsigned char ch, volatile unsigned int *mailbox);
 void get_board_revision();
 void get_memory_info();
 

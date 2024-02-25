@@ -36,9 +36,9 @@ volatile unsigned int  __attribute__((aligned(16))) mbox[36];
 #define MBOX_STATUS     ((volatile unsigned int*)(VIDEOCORE_MBOX+0x18))
 #define MBOX_CONFIG     ((volatile unsigned int*)(VIDEOCORE_MBOX+0x1C))
 #define MBOX_WRITE      ((volatile unsigned int*)(VIDEOCORE_MBOX+0x20))
-#define MBOX_RESPONSE   0x80000000
-#define MBOX_FULL       0x80000000
-#define MBOX_EMPTY      0x40000000
+#define MBOX_RESPONSE   (0x80000000)
+#define MBOX_FULL       (0x80000000)
+#define MBOX_EMPTY      (0x40000000)
 
 #define GET_BOARD_REVISION 0x00010002
 #define GET_ARM_MEMORY     0x00010005
@@ -47,9 +47,9 @@ volatile unsigned int  __attribute__((aligned(16))) mbox[36];
 /**
  * Make a mailbox call. Returns 0 on failure, non-zero on success
  */
-int mbox_call(unsigned char ch)
+int __mbox_call(unsigned char ch, volatile unsigned int *mailbox)
 {
-    unsigned int r = (((unsigned int) ((unsigned long) &mbox) & ~0xF) | (ch & 0xF)); // combine message address and channel number
+    unsigned int r = (((unsigned int) ((unsigned long) mailbox) & ~0xF) | (ch & 0xF)); // combine message address and channel number
     /* wait until we can write to the mailbox */
     do {
         asm volatile("nop");
@@ -65,9 +65,36 @@ int mbox_call(unsigned char ch)
         /* is it a response to our message? */
         if(r == *MBOX_READ)
             /* is it a valid successful response? */
-            return mbox[1] == MBOX_RESPONSE;
+            return mailbox[1] == MBOX_RESPONSE;
     }
     return 0;
+}
+
+/**
+ * Make a mailbox call. Returns 0 on failure, non-zero on success
+ */
+int mbox_call(unsigned char ch)
+{
+    return __mbox_call(ch, mbox);
+    // unsigned int r = (((unsigned int) ((unsigned long) &mbox) & ~0xF) | (ch & 0xF)); // combine message address and channel number
+    // /* wait until we can write to the mailbox */
+    // do {
+    //     asm volatile("nop");
+    // } while (*MBOX_STATUS & MBOX_FULL);
+    // /* write the address of our message to the mailbox with channel identifier */
+    // *MBOX_WRITE = r;
+    // /* now wait for the response */
+    // while(1) {
+    //     /* is there a response? */
+    //     do{
+    //         asm volatile("nop");
+    //     } while (*MBOX_STATUS & MBOX_EMPTY);
+    //     /* is it a response to our message? */
+    //     if(r == *MBOX_READ)
+    //         /* is it a valid successful response? */
+    //         return mbox[1] == MBOX_RESPONSE;
+    // }
+    // return 0;
 }
 
 void get_board_revision()

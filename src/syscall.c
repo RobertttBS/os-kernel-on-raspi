@@ -3,6 +3,7 @@
 #include "syscall.h"
 #include "exec.h"
 #include "exception.h"
+#include "mbox.h"
 
 /* The definition of system call handler function */
 syscall_t sys_call_table[SYSCALL_NUM] = {
@@ -11,7 +12,8 @@ syscall_t sys_call_table[SYSCALL_NUM] = {
     sys_uart_write,
     sys_exec,
     sys_fork,
-    sys_exit
+    sys_exit,
+    sys_mbox_call
 };
 
 /* As a handler function for svc, setup the return value to trapframe */
@@ -69,7 +71,6 @@ int sys_fork(struct trapframe *trapframe)
         ustack_pool[child_task_id][i] = ustack_pool[current->task_id][i];
     }
 
-
     // compute the relative address between current task kstack and ustack
     int kstack_offset = kstack_pool[child_task_id] - kstack_pool[current->task_id];
     int ustack_offset = ustack_pool[child_task_id] - ustack_pool[current->task_id];
@@ -94,5 +95,14 @@ int sys_exit(struct trapframe *trapframe) {
     num_running_task--;
     // printf("Task %d exit, exit state %d\n", current->task_id, current->exit_state);
     schedule(); // if we schedule() here, this function never return
+    return SYSCALL_SUCCESS;
+}
+
+/* Mailbox call, not sure what to return */
+int sys_mbox_call(struct trapframe *trapframe)
+{
+    unsigned char ch = (unsigned char) trapframe->x[0];
+    unsigned int *mbox = (unsigned int *) trapframe->x[1];
+    trapframe->x[0] = __mbox_call(ch, (volatile unsigned int *) mbox);
     return SYSCALL_SUCCESS;
 }

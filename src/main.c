@@ -17,6 +17,7 @@ extern void core_timer_enable(void); // defined in timer_.S
 void main()
 {
     shell_init();
+    get_memory_info();
     // uart_async_init();
     fdt_init();
     fdt_traverse(initramfs_callback);
@@ -33,11 +34,11 @@ void main()
     sched_init(); // start schedule
 
     /* Switch to el0 before running shell. Unnessasary in lab 4*/
-    // move_to_user_mode();
+    move_to_user_mode();
     while(1) {
-        // uart_puts("# ");
-        // char cmd[CMD_LEN];
-        // shell_input(cmd);
-        // shell_controller(cmd);
+        uart_puts("# ");
+        char cmd[CMD_LEN];
+        shell_input(cmd);
+        shell_controller(cmd);
     }
 }

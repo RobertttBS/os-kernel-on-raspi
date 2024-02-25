@@ -106,3 +106,37 @@ void user_test()
 {
     do_exec(test);
 }
+
+void fork_test()
+{
+    printf("\nFork Test, pid %d\n", get_taskid());
+    int cnt = 1;
+    int ret = 0;
+    if ((ret = fork()) == 0) {
+        long long cur_sp;
+        asm volatile("mov %0, sp": "=r"(cur_sp));
+        printf("first child pid: %d, cnt: %d, ptr: %x, sp: %x\n", get_taskid(), cnt, &cnt, cur_sp);
+        ++cnt;
+
+        if ((ret = fork()) != 0) {
+            asm volatile("mov %0, sp": "=r"(cur_sp));
+            printf("first child pid: %d, cnt: %d, ptr: %x, sp: %x\n", get_taskid(), cnt, &cnt, cur_sp);
+        } else {
+            while (cnt < 5) {
+                asm volatile("mov %0, sp": "=r"(cur_sp));
+                printf("second child pid: %d, cnt: %d, ptr: %x, sp: %x\n", get_taskid(), cnt, &cnt, cur_sp);
+                delay();
+                ++cnt;
+            }
+        }
+        exit(0);
+    } else {
+        printf("parent here, pid %d, child %d\n", get_taskid(), ret);
+        exit(0);
+    }
+}
+
+void demo_fork_test()
+{
+    do_exec(fork_test);
+}

@@ -130,9 +130,13 @@ void sched_init()
     // core_timer_enable();
     // idle();
 
+    /* for OSC-2023 Lab 5 Basic Exercise 2 */
+    privilege_task_create(demo_fork_test, 5);
+
     enable_interrupt(); // for requirement 2 of OSDI 2020 Lab4. We enable interrupt here. Because we want timer interrupt at EL1.
 
     core_timer_enable(); // enable core timer.
+    idle();
 
     schedule();
 }
