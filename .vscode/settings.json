@@ -9,6 +9,9 @@
         "system_error": "c",
         "condition_variable": "c",
         "future": "c",
-        "uart.h": "c"
+        "uart.h": "c",
+        "chrono": "c",
+        "executor": "c",
+        "ratio": "c"
     }
 }

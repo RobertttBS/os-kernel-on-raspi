@@ -8,6 +8,7 @@
 #include "exception.h"
 #include "sched.h"
 #include "timer.h"
+#include "mm.h"
 
 #define CMD_LEN 128
 
@@ -31,14 +32,32 @@ void main()
 
     disable_interrupt();
 
-    sched_init(); // start schedule
+    // sched_init(); // start schedule
 
     /* Switch to el0 before running shell. Unnessasary in lab 4*/
-    move_to_user_mode();
-    while(1) {
-        uart_puts("# ");
-        char cmd[CMD_LEN];
-        shell_input(cmd);
-        shell_controller(cmd);
-    }
+    // move_to_user_mode();
+
+    buddy_init();
+    get_buddy_info();
+    struct page *test_page1 = rmqueue(0);
+    printf("physical address: %x\n", test_page1, pfn_to_phys(page_to_pfn(test_page1)));
+    get_buddy_info();
+    
+    struct page *test_page2 = rmqueue(1);
+    printf("physical address: %x\n", test_page2, pfn_to_phys(page_to_pfn(test_page2)));
+    get_buddy_info();
+
+    free_one_page(test_page1, page_to_pfn(test_page1), 0);
+    free_one_page(test_page2, page_to_pfn(test_page2), 1);
+    get_buddy_info();
+
+    struct page *test_page3 = rmqueue(8);
+    printf("physical address: %x\n", test_page3, pfn_to_phys(page_to_pfn(test_page3)));
+    get_buddy_info();
+    // while(1) {
+    //     uart_puts("# ");
+    //     char cmd[CMD_LEN];
+    //     shell_input(cmd);
+    //     shell_controller(cmd);
+    // }
 }

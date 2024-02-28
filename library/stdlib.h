@@ -2,8 +2,10 @@
 #define STDLIB_H
 
 
-
-typedef unsigned int size_t;
+#ifndef __SIZE_T__
+#define __SIZE_T__
+typedef unsigned long size_t;
+#endif // __SIZE_T__
 
 #define BASE ((volatile unsigned int*)(0x60000))
 #define LIMIT ((volatile unsigned int*)(0x7FFFF))

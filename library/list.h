@@ -1,6 +1,9 @@
 #ifndef __LIST_H__
 #define __LIST_H__ 
 
+#include "stddef.h"
+#include "stdlib.h"
+
 /** Get the offset of MEMBER compared with the struct TYPE. 
  * It cast address 0 to be the pointer of TYPE, then get the address of MEMBER.
  * Because the TYPE address is 0x0, so the address of ((TYPE *)0)->MEMBER is the offset.
