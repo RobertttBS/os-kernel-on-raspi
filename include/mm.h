@@ -9,17 +9,37 @@
 
 #include "list.h"
 #include "stdint.h"
+#include "slab.h"
 
 #define PG_buddy                    (0x40) // page frame is free and in buddy system.
 #define PG_USED                     (1) // page frame used.
 #define PG_KERNEL                   (2) // page frame used by kernel.
 #define PG_MMIO                     (3) // page frame used by MMIO.
 #define PG_AVAIL                    (4) // page frame is free and not in buddy system. e.g. order 2 page fram [0, 1, 2, 3], flags  = [PG_buddy, PG_AVAIL, PG_AVAIL, PG_AVAIL]
+#define PG_slab                     (0x20) // page frame is used by slab allocator.
 
 struct page {
-    unsigned int flags; // page flags: represent the page state, like compound, dirty, etc.
-    unsigned long private; // used to indicate the order of the page in buddy system.
-    struct list_head buddy_list; // list_head for buddy system.
+    unsigned long flags; // page flags: represent the page state, like compound, dirty, etc.
+    union {
+        struct {
+            struct list_head buddy_list; // list_head for buddy system.
+            unsigned long private; // used to indicate the order of the page in buddy system.
+        };
+        struct { /* Used for slab */
+            struct list_head slab_list; // list_head for other slabs.
+            struct kmem_cache *slab_cache; // point back to the `struct kmem_cache`
+            void *freelist; // the address of the free list.
+
+            union { // frozen and inuse are not implemented for now. Just use the counter to represent the number of objects
+                unsigned long counters;
+                struct {
+                    unsigned inuse:16;
+                    unsigned objects:15;
+                    unsigned frozen:1;
+                };
+            };
+        };
+    };
 };
 
 struct free_area {
@@ -39,22 +59,21 @@ struct zone {
     // struct list_head inactive_list;
 };
 
-/* Though we don't have NUMA, use one zone to represent the whole memory space */
-extern struct zone zone;
-
-/* page frame: to map the physical memory*/
-extern struct page pages[];
 extern struct page *mem_map; // mem_map points to pages
-
 
 #define pfn_to_page(pfn) (mem_map + pfn)
 #define page_to_pfn(page) ((unsigned long)((page) - mem_map))
+
 #define pfn_to_phys(pfn) ((unsigned long)(pfn << PAGE_SHIFT))
-#define phys_to_pfn(phys) ((unsigned long)(phys >> PAGE_SHIFT))
+#define phys_to_pfn(phys) ((unsigned long)phys >> PAGE_SHIFT)
+
+#define page_to_phys(page) (pfn_to_phys(page_to_pfn(page)))
+#define phys_to_page(phys) (pfn_to_page(phys_to_pfn(phys)))
 
 
+void mm_init(void);
 void buddy_init(void);
-struct page *rmqueue(unsigned int order);
+struct page *__alloc_pages(unsigned int order);
 void free_one_page(struct page *page, unsigned long pfn, unsigned int order);
 
 /* For print out the buddy system information */

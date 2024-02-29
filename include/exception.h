@@ -6,8 +6,9 @@
 
 void core_timer_handler();
 void uart_interrupt_handler();
-
 void print_current_el(void);
+
+/* Defined in .S file */
 extern void exit_kernel();
 
 static inline void enable_interrupt()

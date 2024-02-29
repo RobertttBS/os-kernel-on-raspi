@@ -5,15 +5,19 @@
 
 #include "mm.h"
 #include "uart.h"
+#include "slab.h"
 
 #ifndef __MMIO_BASE__
 #define __MMIO_BASE__
 #define MMIO_BASE               (0x3F000000)
 #endif // __MMIO_BASE__
 
-struct page pages[NR_PAGES] = {0}; // Not sure whether we should initialize it or not. (.bss problem)
-struct page *mem_map = pages;
-struct zone zone = {};
+/* page frame: to map the physical memory */
+static struct page pages[NR_PAGES] = {0}; // Not sure whether we should initialize it or not. (.bss problem)
+struct page *mem_map = pages; // Check whether the `mem_map` is initialized to pages in other files that include mm.h.
+
+/* Though we don't have NUMA, use one zone to represent the whole memory space */
+static struct zone zone = {0};
 
 extern unsigned char _end; // the end of kernel image
 
@@ -119,21 +123,8 @@ static inline void __free_one_page(struct page *page, unsigned long pfn, unsigne
     add_to_free_area(page, order);
 }
 
-/* Free a page and merge it into buddy system. Without lock protection for now. */
-void free_one_page(struct page *page, unsigned long pfn, unsigned int order)
-{
-    /* I may implement kmalloc(), so kernel memory can be freed. But deny for now.*/
-    if (page->flags == PG_MMIO || page->flags == PG_KERNEL) {
-        printf("Error: Try to free a page that is used by kernel or MMIO\n");
-        return;
-    }
-    /* Linux kernel use spin_lock to protect critical region (buddy system), but I didn't implement it for now. */
-    __free_one_page(page, pfn, order);
-}
-
-
 /* Initialize the page frame structure and the information in zone. */
-void page_frame_init(void)
+static inline void page_frame_init(void)
 {
     int i = 0;
     unsigned long kernel_end_pfn = ((unsigned long)(&_end) >> 12); // kernel end address convert to pfn
@@ -158,7 +149,7 @@ void page_frame_init(void)
 }
 
 /* Init the buddy system list_head structure */
-void buddy_free_area_init(void)
+static inline void buddy_free_area_init(void)
 {
     int i = 0;
     for (; i < MAX_ORDER; i++) {
@@ -226,7 +217,7 @@ static inline struct page *__rmqueue_smallest(unsigned int order)
 }
 
 /* Get a free page from buddy system. Without lock protection for now. */
-struct page *rmqueue(unsigned int order)
+static inline struct page *rmqueue(unsigned int order)
 {
     struct page *page = NULL;
     /* Linux kernel use spin_lock to protect critical region (buddy system), but I didn't implement it for now. */
@@ -242,6 +233,31 @@ void buddy_init(void)
     /* We need to initialize the page frame structure `pages[]`. Then put free pages into buddy system. */
     page_frame_init();
 }
+
+/* Init buddy system and slab allocator. */
+void mm_init(void)
+{
+    buddy_init();
+    slab_init();
+}
+
+struct page *__alloc_pages(unsigned int order)
+{
+    return rmqueue(order);
+}
+
+/* Free a page and merge it into buddy system. Without lock protection for now. */
+void free_one_page(struct page *page, unsigned long pfn, unsigned int order)
+{
+    /* Just make sure the page is from buddy system. */
+    if (page->flags != PG_USED) {
+        printf("Error: Try to free a page that is not allocated from buddy system.\n");
+        return;
+    }
+    /* Linux kernel use spin_lock to protect critical region (buddy system), but I didn't implement it for now. */
+    __free_one_page(page, pfn, order);
+}
+
 
 /* Get the memory information. */
 void get_buddy_info(void)
