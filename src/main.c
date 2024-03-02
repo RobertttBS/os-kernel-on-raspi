@@ -20,6 +20,8 @@ extern void core_timer_enable(void); // defined in timer_.S
 void main()
 {
     shell_init();
+    memblock_init(); // memblock init should be called before any memory allocation.
+    
     get_memory_info();
     // uart_async_init();
     fdt_init();
@@ -39,13 +41,12 @@ void main()
     /* Switch to el0 before running shell. Unnessasary in lab 4*/
     // move_to_user_mode();
 
-    // mm_init();
+    mm_init();
 
-    // test_buddy();
-    // test_slab();
+    test_buddy();
+    test_slab();
 
-    memblock_init();
-    test_memblock();
+    // test_memblock();
 
     while(1) {
         uart_puts("# ");

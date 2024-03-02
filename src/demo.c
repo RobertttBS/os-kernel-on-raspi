@@ -148,19 +148,20 @@ void test_buddy()
 {
     get_buddy_info();
     struct page *test_page1 = __alloc_pages(0);
-    printf("physical address: %x\n", test_page1, pfn_to_phys(page_to_pfn(test_page1)));
+    printf("Allocate 0 order page, physical address: %x\n", test_page1, pfn_to_phys(page_to_pfn(test_page1)));
     get_buddy_info();
     
     struct page *test_page2 = __alloc_pages(1);
-    printf("physical address: %x\n", test_page2, pfn_to_phys(page_to_pfn(test_page2)));
+    printf("Allocate 1 order page, physical address: %x\n", test_page2, pfn_to_phys(page_to_pfn(test_page2)));
     get_buddy_info();
 
     free_one_page(test_page1, page_to_pfn(test_page1), 0);
     free_one_page(test_page2, page_to_pfn(test_page2), 1);
+    printf("Free 0 order page and 1 order page\n");
     get_buddy_info();
 
     struct page *test_page3 = __alloc_pages(8);
-    printf("physical address: %x\n", test_page3, pfn_to_phys(page_to_pfn(test_page3)));
+    printf("Allocate 8 order page, physical address: %x\n", test_page3, pfn_to_phys(page_to_pfn(test_page3)));
     get_buddy_info();
 }
 

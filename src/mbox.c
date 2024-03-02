@@ -125,12 +125,8 @@ void get_memory_info()
     mbox[7] = 0; // MBOX_TAG_LAST
     mbox_call(8);
 
-    uart_puts("arm memory base address : 0x");
-    uart_hex(mbox[5]);
-    uart_send('\n');
-    uart_puts("arm memory base size : ");
-    uart_hex(mbox[6]);
-    uart_send('\n');
+    printf("arm memory base address : 0x%x\n", mbox[5]);
+    printf("arm memory base size    :   %x\n", mbox[6]);
 }
 
 void __get_memory_info(unsigned int *base, unsigned int *size)

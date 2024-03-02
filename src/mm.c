@@ -7,14 +7,21 @@
 #include "uart.h"
 #include "slab.h"
 #include "memblock.h"
+#include "memblock.h"
 
 #ifndef MMIO_BASE
 #define MMIO_BASE               (0x3F000000)
 #endif // MMIO_BASE
 
+#ifndef PAGE_SIZE
+#define PAGE_SIZE               (1 << 12) // 4KB
+#endif // PAGE_SIZE
+
 /* page frame: to map the physical memory */
-static struct page pages[NR_PAGES] = {0}; // Not sure whether we should initialize it or not. (.bss problem)
-struct page *mem_map = pages;
+// static struct page pages[NR_PAGES] = {0}; // Not sure whether we should initialize it or not. (.bss problem)
+struct page *mem_map = NULL;
+
+unsigned long nr_pages = 0;
 
 /* Though we don't have NUMA, use one zone to represent the whole memory space */
 static struct zone zone = {0};
@@ -126,25 +133,30 @@ static inline void __free_one_page(struct page *page, unsigned long pfn, unsigne
 /* Initialize the page frame structure and the information in zone. */
 static inline void page_frame_init(void)
 {
-    int i = 0;
-    unsigned long kernel_end_pfn = ((unsigned long)(&_end) >> 12); // kernel end address convert to pfn
-    unsigned long mmio_start_pfn = (MMIO_BASE >> 12);
+    struct memblock_region *rgn;
+    unsigned int i;
 
-    for (; i < kernel_end_pfn; i++) {
-        pages[i].flags = PG_KERNEL;
-        pages[i].private = 0;
-        INIT_LIST_HEAD(&(pages[i].buddy_list));
+    /* Setup the number of pages from memblock.current_limit. */
+    nr_pages = (memblock.current_limit >> 12) + 1;
+
+    /* Allocate memory from memblock. */
+    mem_map = (struct page *) memblock_phys_alloc(sizeof(struct page) * NR_PAGES);
+
+    /* Initialize page structure*/
+    for_each_memblock_type(i, &memblock.reserved, rgn) {
+        // printf("Reserved: %x - %x\n", rgn->base, rgn->base + rgn->size);
+        for (unsigned long pfn = rgn->base >> 12; pfn < (rgn->base + rgn->size) >> 12; pfn++) {
+            mem_map[pfn].flags = PG_RESERVED;
+            INIT_LIST_HEAD(&(mem_map[pfn].buddy_list));
+        }
     }
-    for (; i < mmio_start_pfn; i++) {
-        /* We have (mmio_start_pfn - i) pages */
-        pages[i].flags = PG_AVAIL;
-        INIT_LIST_HEAD(&(pages[i].buddy_list));
-        /* Add the page to the buddy system and merge. Use `__free_one_page()` to merge free page into buddy system. */
-        __free_one_page(&(pages[i]), i, 0);
-    }
-    for (; i < NR_PAGES; i++) {
-        pages[i].flags = PG_MMIO;
-        INIT_LIST_HEAD(&(pages[i].buddy_list));
+
+    for (i = 0; i < nr_pages; i++) {
+        if (mem_map[i].flags == PG_RESERVED)
+            continue;
+        mem_map[i].flags = PG_AVAIL;
+        INIT_LIST_HEAD(&(mem_map[i].buddy_list));
+        __free_one_page(&(mem_map[i]), i, 0);
     }
 }
 
@@ -225,7 +237,9 @@ static inline struct page *rmqueue(unsigned int order)
     return page;
 }
 
-/* Initialize page frame structures and buddy system. */
+/**
+ * Initialize page frame structures and buddy system.
+ * Make sure the memblock allocator has been initialized before this function. */
 void buddy_init(void)
 {
     /* Init the buddy system: free_area list_head structure. */
@@ -237,7 +251,6 @@ void buddy_init(void)
 /* Init buddy system and slab allocator. */
 void mm_init(void)
 {
-    memblock_init(); // memblock should be initialized before buddy system. And it provides memory to buddy system.
     buddy_init();
     slab_init();
 }
@@ -268,14 +281,4 @@ void get_buddy_info(void)
         printf("Order %d free pages: %d\n", i, zone.free_area[i].nr_free);
     }
     printf("=====================\n\n");
-}
-
-/* Memory reserve: to reserve specific location */
-void reserve_mem(unsigned long start, unsigned long end)
-{
-    unsigned long start_pfn = start >> 12;
-    unsigned long end_pfn = end >> 12;
-    for (unsigned long i = start_pfn; i <= end_pfn; i++) {
-        pages[i].flags = PG_RESERVED;
-    }
 }

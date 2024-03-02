@@ -6,6 +6,9 @@
 
 #define MEMBLOCK_ALLOC_ACCESSIBLE	0
 
+#define for_each_memblock_type(i, memblock_type, rgn) \
+    for (i = 0, rgn = &((memblock_type)->regions[0]); i < (memblock_type)->cnt; i++, rgn = &(memblock_type)->regions[i])
+
 enum memblock_flags {
 	MEMBLOCK_NONE		= 0x0,	/* No special request */
 	MEMBLOCK_HOTPLUG	= 0x1,	/* hotpluggable region */
@@ -30,6 +33,7 @@ struct memblock_type {
 };
 
 struct memblock {
+    phys_addr_t current_limit;
     struct memblock_type memory;
     struct memblock_type reserved;
 };

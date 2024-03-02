@@ -3,7 +3,8 @@
 
 #define PAGE_SHIFT                  (12)
 #define MAX_ORDER                   (10)
-#define NR_PAGES                    (262144)
+// #define NR_PAGES                    (262144)
+#define NR_PAGES                    (nr_pages)
 
 #ifndef __ASSEMBLER__
 

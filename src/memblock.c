@@ -33,8 +33,10 @@ struct memblock memblock = {
     .reserved.max = INIT_MEMLBOCK_REGIONS,
 };
 
-#define for_each_memblock_type(i, memblock_type, rgn) \
-    for (i = 0, rgn = &memblock_type->regions[0]; i < (memblock_type)->cnt; i++, rgn = &memblock_type->regions[i])
+static void memblock_set_current_limit(phys_addr_t limit)
+{
+	memblock.current_limit = limit;
+}
 
 void __next_mem_range(u64 *idx, struct memblock_type *type_a,
 		      struct memblock_type *type_b, phys_addr_t *out_start,
@@ -263,6 +265,9 @@ void memblock_init(void)
 
     /* Update the `phys_addr_max` */
     phys_addr_max = base + size;
+
+    /* Set the current_limit */
+    memblock_set_current_limit(phys_addr_max);
 
     /* Add the whole memory into memblock_type memory */
     memblock_add_range(&memblock.memory, base, size);
