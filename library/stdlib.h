@@ -1,10 +1,10 @@
-#ifndef STDLIB_H
-#define STDLIB_H
+#ifndef __STDLIB_H__
+#define __STDLIB_H__
 
 
 #ifndef __SIZE_T__
-#define __SIZE_T__
 typedef unsigned long size_t;
+#define __SIZE_T__
 #endif // __SIZE_T__
 
 #define BASE ((volatile unsigned int*)(0x60000))

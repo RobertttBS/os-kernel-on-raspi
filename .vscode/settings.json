@@ -12,6 +12,13 @@
         "uart.h": "c",
         "chrono": "c",
         "executor": "c",
-        "ratio": "c"
+        "ratio": "c",
+        "mm.h": "c",
+        "gpio.h": "c",
+        "random": "cpp",
+        "limits": "c",
+        "algorithm": "c",
+        "mbox.h": "c",
+        "memblock.h": "c"
     }
 }

@@ -100,8 +100,6 @@ static struct page *allocate_slab(struct kmem_cache *cache)
 static inline void *__get_object(struct kmem_cache *cache)
 {
     void *object;
-
-    struct list_head *slab_list_head;
     struct page *slab;
 
     /* cache->node.partial has the slab structure list_head */
@@ -147,6 +145,11 @@ void free_object(void *object)
 
     /* Use object physical address to get the slab and slab cache*/
     slab = phys_to_page(object);
+
+    /* Check whether the page is a slab */
+    if (slab->flags != PG_slab)
+        return;
+
     cache = slab->slab_cache;
 
     /* Add the object to the freelist */

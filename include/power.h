@@ -22,8 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-#ifndef POWER_H
-#define POWER_H
+#ifndef __POWER_H__
+#define __POWER_H__
 
 void power_off();
 void reset();

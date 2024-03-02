@@ -11,12 +11,14 @@
 #include "stdint.h"
 #include "slab.h"
 
-#define PG_buddy                    (0x40) // page frame is free and in buddy system.
 #define PG_USED                     (1) // page frame used.
 #define PG_KERNEL                   (2) // page frame used by kernel.
 #define PG_MMIO                     (3) // page frame used by MMIO.
 #define PG_AVAIL                    (4) // page frame is free and not in buddy system. e.g. order 2 page fram [0, 1, 2, 3], flags  = [PG_buddy, PG_AVAIL, PG_AVAIL, PG_AVAIL]
+#define PG_RESERVED                 (0x80) // page frame is reserved.
+
 #define PG_slab                     (0x20) // page frame is used by slab allocator.
+#define PG_buddy                    (0x40) // page frame is free and in buddy system.
 
 struct page {
     unsigned long flags; // page flags: represent the page state, like compound, dirty, etc.
@@ -78,6 +80,8 @@ void free_one_page(struct page *page, unsigned long pfn, unsigned int order);
 
 /* For print out the buddy system information */
 void get_buddy_info(void);
+
+void reserve_mem(unsigned long start, unsigned long end); // reserve memory
 
 #endif // __ASSEMBLER__
 #endif // __MM_H__

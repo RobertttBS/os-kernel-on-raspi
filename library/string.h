@@ -1,5 +1,5 @@
-#ifndef STRING_H
-#define STRING_H
+#ifndef __STRING_H__
+#define __STRING_H__
 
 
 int oct2bin(char *s, int n);

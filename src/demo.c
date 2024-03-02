@@ -3,6 +3,9 @@
 #include "exec.h"
 #include "syscall.h"
 #include "delays.h"
+#include "slab.h"
+#include "mm.h"
+#include "memblock.h"
 
 void demo_task1()
 {
@@ -139,4 +142,50 @@ void fork_test()
 void demo_fork_test()
 {
     do_exec(fork_test);
+}
+
+void test_buddy()
+{
+    get_buddy_info();
+    struct page *test_page1 = __alloc_pages(0);
+    printf("physical address: %x\n", test_page1, pfn_to_phys(page_to_pfn(test_page1)));
+    get_buddy_info();
+    
+    struct page *test_page2 = __alloc_pages(1);
+    printf("physical address: %x\n", test_page2, pfn_to_phys(page_to_pfn(test_page2)));
+    get_buddy_info();
+
+    free_one_page(test_page1, page_to_pfn(test_page1), 0);
+    free_one_page(test_page2, page_to_pfn(test_page2), 1);
+    get_buddy_info();
+
+    struct page *test_page3 = __alloc_pages(8);
+    printf("physical address: %x\n", test_page3, pfn_to_phys(page_to_pfn(test_page3)));
+    get_buddy_info();
+}
+
+void test_slab(void)
+{
+    void *test_slab1 = get_object(9);
+    printf("test_slab1: %x\n", test_slab1);
+    void *test_slab2 = get_object(10);
+    printf("test_slab2: %x\n", test_slab2);
+    void *test_slab3 = get_object(11);
+    printf("test_slab3: %x\n", test_slab3);
+
+    free_object(test_slab2);
+    void *test_slab4 = get_object(12);
+    printf("test_slab4: %x\n", test_slab4);
+}
+
+void test_memblock(void)
+{
+    print_memblock_info();
+    phys_addr_t test_memblock_1 = memblock_phys_alloc(0x1001);
+    printf("test_memblock_1: 0x%x\n", test_memblock_1);
+    print_memblock_info();
+
+    phys_addr_t test_memblock_2 = memblock_phys_alloc(8);
+    printf("test_memblock_2: 0x%x\n", test_memblock_2);
+    print_memblock_info();
 }

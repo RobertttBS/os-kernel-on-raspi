@@ -22,8 +22,8 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-#ifndef UART_H
-#define UART_H
+#ifndef __UART_H__
+#define __UART_H__
 
 #include "gpio.h"
 

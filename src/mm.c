@@ -6,15 +6,15 @@
 #include "mm.h"
 #include "uart.h"
 #include "slab.h"
+#include "memblock.h"
 
-#ifndef __MMIO_BASE__
-#define __MMIO_BASE__
+#ifndef MMIO_BASE
 #define MMIO_BASE               (0x3F000000)
-#endif // __MMIO_BASE__
+#endif // MMIO_BASE
 
 /* page frame: to map the physical memory */
 static struct page pages[NR_PAGES] = {0}; // Not sure whether we should initialize it or not. (.bss problem)
-struct page *mem_map = pages; // Check whether the `mem_map` is initialized to pages in other files that include mm.h.
+struct page *mem_map = pages;
 
 /* Though we don't have NUMA, use one zone to represent the whole memory space */
 static struct zone zone = {0};
@@ -237,6 +237,7 @@ void buddy_init(void)
 /* Init buddy system and slab allocator. */
 void mm_init(void)
 {
+    memblock_init(); // memblock should be initialized before buddy system. And it provides memory to buddy system.
     buddy_init();
     slab_init();
 }
@@ -267,4 +268,14 @@ void get_buddy_info(void)
         printf("Order %d free pages: %d\n", i, zone.free_area[i].nr_free);
     }
     printf("=====================\n\n");
+}
+
+/* Memory reserve: to reserve specific location */
+void reserve_mem(unsigned long start, unsigned long end)
+{
+    unsigned long start_pfn = start >> 12;
+    unsigned long end_pfn = end >> 12;
+    for (unsigned long i = start_pfn; i <= end_pfn; i++) {
+        pages[i].flags = PG_RESERVED;
+    }
 }

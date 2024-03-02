@@ -1,5 +1,5 @@
-#ifndef REG_H
-#define REG_H
+#ifndef __REG_H__
+#define __REG_H__
 
 #define HCR_RW                      (1 << 31) // The Execution state for EL1 is AArch64
 #define HCR_EL2_VALUE               HCR_RW

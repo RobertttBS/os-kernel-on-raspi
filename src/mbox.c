@@ -132,3 +132,19 @@ void get_memory_info()
     uart_hex(mbox[6]);
     uart_send('\n');
 }
+
+void __get_memory_info(unsigned int *base, unsigned int *size)
+{
+    mbox[0] = 8 * 4;
+    mbox[1] = 0;
+    mbox[2] = GET_ARM_MEMORY;
+    mbox[3] = 8;
+    mbox[4] = 0; // TAG_REQUEST_CODE is 0
+    mbox[5] = 0;
+    mbox[6] = 0;
+    mbox[7] = 0; // MBOX_TAG_LAST
+    mbox_call(8);
+
+    *base = mbox[5];
+    *size = mbox[6];
+}

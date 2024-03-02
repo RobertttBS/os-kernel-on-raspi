@@ -23,8 +23,8 @@
  *
  */
 // extern volatile unsigned char _binary_ramdisk_start;
-#ifndef INITRD_H
-#define INITRD_H
+#ifndef __INITRD_H__
+#define __INITRD_H__
 
 #include "dtb.h"
 
