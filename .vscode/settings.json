@@ -19,6 +19,8 @@
         "limits": "c",
         "algorithm": "c",
         "mbox.h": "c",
-        "memblock.h": "c"
+        "memblock.h": "c",
+        "stdlib.h": "c",
+        "fs.h": "c"
     }
 }
