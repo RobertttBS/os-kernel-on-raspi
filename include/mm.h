@@ -74,15 +74,23 @@ extern struct page *mem_map; // mem_map points to pages
 #define phys_to_page(phys) (pfn_to_page(phys_to_pfn(phys)))
 
 
+/* Init buddy system and slab allocator. */
 void mm_init(void);
-void buddy_init(void);
+
+/* Allocate page from buddy system. */
 struct page *__alloc_pages(unsigned int order);
+
+/* Free a page and merge it into buddy system. Without lock protection for now. */
 void free_one_page(struct page *page, unsigned long pfn, unsigned int order);
 
-/* For print out the buddy system information */
+/* Print out the buddy system information */
 void get_buddy_info(void);
 
-void reserve_mem(unsigned long start, unsigned long end); // reserve memory
+/* Reserve memory to mem_block. */
+void reserve_mem(unsigned long start, unsigned long end);
+
+/* Kernel memory allocate, return physical address. */
+unsigned long kmalloc(unsigned long size);
 
 #endif // __ASSEMBLER__
 #endif // __MM_H__

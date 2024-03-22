@@ -282,3 +282,22 @@ void get_buddy_info(void)
     }
     printf("=====================\n\n");
 }
+
+/* Kernel memory allocate, return physical address. */
+unsigned long kmalloc(unsigned long size)
+{
+    unsigned int order = 0;
+
+    if (size > PAGE_SIZE) {
+        /* compute the order of the size */
+        while (size > PAGE_SIZE) {
+            size >>= 1;
+            order++;
+        }
+        
+        return page_to_phys(__alloc_pages(order));
+    } else {
+        /* Use slab allocator to allocate memory. */
+        return (unsigned long) get_object(size);
+    }
+}
