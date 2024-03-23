@@ -3,7 +3,7 @@
 #define __TMPFS_H__
 
 
-int tmpfs_mount(struct file_system_type* fs, struct mount* mount);
+struct dentry *tmpfs_mount(struct file_system_type* fs, const char* dir_name);
 
 struct file_system_type tmpfs_fs_type = {
     .name = "tmpfs",

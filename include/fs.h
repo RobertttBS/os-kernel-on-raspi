@@ -2,50 +2,96 @@
 #define __FS_H__
 
 #include "stdlib.h"
-
+#include "list.h"
 
 struct inode {
-  struct mount *mount;
-  struct inode_operations *v_ops;
-  struct file_operations *f_ops;
-  void *internal;
+    struct super_block *i_sb;
+
+    struct inode_operations *i_op;
+    struct file_operations *i_fop;
+
+    void *internal;
 };
 
 struct file {
-  struct inode *inode;
-  size_t f_pos; // The next read/write position of this file descriptor
-  struct file_operations *f_ops;
-  int flags;
+    struct inode *inode;
+    struct file_operations *f_op;
+
+    size_t f_pos; /* The next read/write position of this file descriptor. */
+    int f_flags; /* Not sure the usage for now. */
+};
+
+struct super_block {
+    struct list_head s_list; /* Keep this first. Not sure the function of this. */
+    unsigned long s_blocksize;
+    struct file_system_type *s_type;
+    struct super_operations *s_op;
+
+    struct dentry *s_root;
+    struct dentry_operations *s_d_op; /* default d_op for dentries*/
+
+    struct list_head s_inodes; /* All inodes. */
+};
+
+struct dentry {
+    struct inode *d_inode;
+    struct dentry *d_parent;
+    const char d_iname[32];
+
+    const struct dentry_operations *d_op;
+    struct super_block *d_sb;
+
+    struct list_head d_lru; /* Not sure the usage of this. There's no other list_head, so add it here. */
+    struct list_head d_child;
+    struct list_head d_subdirs;
 };
 
 struct mount {
-  struct inode *root;
-  struct file_system_type *fs;
+    struct dentry *mnt_root;
+    struct super_block *mnt_sb;
 };
 
+/**
+ * In linux kernel, `mount` is a function api to generate `struct dentry` for vfsmount.
+ * Here, the `mount` function should generate a `struct dentry` with the given `dir_name`.
+*/
 struct file_system_type {
-  const char *name;
-  int (*mount) (struct file_system_type *fs, struct mount *mount);
+    const char *name;
+    struct dentry *(*mount) (struct file_system_type *fs, const char *dir_name);
+    struct file_system_type *next;
 };
 
 struct file_operations {
-  int (*write) (struct file *file, const void *buf, size_t len);
-  int (*read) (struct file *file, void *buf, size_t len);
+    int (*write) (struct file *file, const void *buf, size_t len);
+    int (*read) (struct file *file, void *buf, size_t len);
 };
 
 struct inode_operations {
-  int (*lookup) (struct inode *dir_node, struct inode **target, const char *component_name);
-  int (*create) (struct inode *dir_node, struct inode **target, const char *component_name);
+    int (*lookup) (struct inode *dir_node, struct inode **target, const char *component_name);
+    int (*create) (struct inode *dir_node, struct inode **target, const char *component_name);
+};
+
+struct dentry_operations {
+    int (*d_compare) (const struct dentry *dentry, const char *name); /* Not sure the implementation for now. */
+};
+
+struct super_operations {
+    struct inode *(*alloc_inode) (struct super_block *sb);
 };
 
 extern struct mount *rootfs;
+extern struct file_system_type *file_systems;
 
 
-int register_file_system_type(struct file_system_type *fs);
+int register_filesystem(struct file_system_type *fs);
 
 struct file * vfs_open(const char *pathname, int flags);
 int vfs_close(struct file *file);
 int vfs_write(struct file *file, const void *buf, size_t len);
 int vfs_read(struct file *file, void *buf, size_t len);
+
+int vfs_mkdir(const char* pathname);
+int vfs_mount(const char* target, const char* filesystem);
+int vfs_lookup(const char* pathname, struct inode** target);
 
 #endif // __FS_H__

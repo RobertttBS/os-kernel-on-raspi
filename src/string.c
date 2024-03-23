@@ -30,6 +30,7 @@ int hex2bin(char *s, int n)
     return r;
 }
 
+/* return 0 if a, b are identical. */
 int strcmp(const char *a, const char *b)
 {
     while (*a) {
@@ -39,6 +40,18 @@ int strcmp(const char *a, const char *b)
         b++;
     }
     return *(const unsigned char *)a - *(const unsigned char *)b;
+}
+
+/* Return 0 if a, b are identical. */
+int strncmp(const char *a, const char *b, int len)
+{
+    while (len-- > 0) {
+        if (*a != *b)
+            break;
+        a++;
+        b++;
+    }
+    return len < 0 ? 0 : *(const unsigned char *)a - *(const unsigned char *)b;
 }
 
 int memcmp(void *s1, void *s2, int n)

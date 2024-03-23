@@ -5,6 +5,7 @@
 int oct2bin(char *s, int n);
 int hex2bin(char *s, int n);
 int strcmp(const char *a, const char *b);
+int strncmp(const char *a, const char *b, int len);
 int memcmp(void *s1, void *s2, int n);
 int strlen(char *str);
 int strcpy(char *dst, char *src);

@@ -284,7 +284,7 @@ void get_buddy_info(void)
 }
 
 /* Kernel memory allocate, return physical address. */
-unsigned long kmalloc(unsigned long size)
+void *kmalloc(unsigned long size)
 {
     unsigned int order = 0;
 
@@ -295,9 +295,9 @@ unsigned long kmalloc(unsigned long size)
             order++;
         }
         
-        return page_to_phys(__alloc_pages(order));
+        return (void *) page_to_phys(__alloc_pages(order));
     } else {
         /* Use slab allocator to allocate memory. */
-        return (unsigned long) get_object(size);
+        return (void *) get_object(size);
     }
 }

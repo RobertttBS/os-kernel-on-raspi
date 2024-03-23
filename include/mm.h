@@ -90,7 +90,7 @@ void get_buddy_info(void);
 void reserve_mem(unsigned long start, unsigned long end);
 
 /* Kernel memory allocate, return physical address. */
-unsigned long kmalloc(unsigned long size);
+void *kmalloc(unsigned long size);
 
 #endif // __ASSEMBLER__
 #endif // __MM_H__
