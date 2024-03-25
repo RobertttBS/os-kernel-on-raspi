@@ -11,6 +11,7 @@
 #include "mm.h"
 #include "demo.h"
 #include "memblock.h"
+#include "fs.h"
 
 #define CMD_LEN 128
 
@@ -42,11 +43,9 @@ void main()
     // move_to_user_mode();
 
     mm_init();
+    vfs_init();
 
-    test_buddy();
-    test_slab();
 
-    // test_memblock();
 
     while(1) {
         uart_puts("# ");

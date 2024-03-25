@@ -3,10 +3,10 @@
 #include "string.h"
 #include "uart.h"
 #include "mm.h"
+#include "tmpfs.h"
 
 
 struct mount* rootfs;
-
 struct file_system_type *file_systems;
 
 int register_filesystem(struct file_system_type *fs)
@@ -18,6 +18,13 @@ int register_filesystem(struct file_system_type *fs)
     *p = fs;
 
     return 0;
+}
+
+/* Initialize the tmpfs as root file system. */
+void vfs_init()
+{
+    register_filesystem(&tmpfs_fs_type);
+    vfs_mount("/", "tmpfs");
 }
 
 struct file* vfs_open(const char *pathname, int flags)
@@ -83,6 +90,7 @@ int vfs_mount(const char *target, const char *filesystem)
     mnt->mnt_sb = mnt->mnt_root->d_sb;
 
     rootfs = mnt;
+    printf("Success to mount %s to %s\n", filesystem, target);
 
     return 0;
 }
@@ -93,4 +101,16 @@ int vfs_mount(const char *target, const char *filesystem)
 int vfs_lookup(const char *pathname, struct inode **target)
 {
     return 0;
+}
+
+
+/**
+ * VFS provided function to allocate a general inode.
+*/
+struct inode *get_inode(struct super_block *sb)
+{
+    struct inode *inode = (struct inode *) kmalloc(sizeof(struct inode));
+    
+    inode->i_sb = sb;
+    return inode;
 }

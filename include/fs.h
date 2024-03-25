@@ -3,6 +3,15 @@
 
 #include "stdlib.h"
 #include "list.h"
+#include "stdint.h"
+
+
+/* Ref: include/linux/dcache.h */
+#define DCACHE_ENTRY_TYPE       0x00700000
+#define DCACHE_REGULAR_TYPE     0x00100000    /* Regular file type */
+#define DCACHE_DIRECTORY_TYPE   0x00200000    /* Normal directory */
+
+#define FILE_NAME_LEN    32
 
 struct inode {
     struct super_block *i_sb;
@@ -22,8 +31,6 @@ struct file {
 };
 
 struct super_block {
-    struct list_head s_list; /* Keep this first. Not sure the function of this. */
-    unsigned long s_blocksize;
     struct file_system_type *s_type;
     struct super_operations *s_op;
 
@@ -34,16 +41,17 @@ struct super_block {
 };
 
 struct dentry {
+    unsigned int d_flags; /* Represent the dentry type*/
     struct inode *d_inode;
     struct dentry *d_parent;
-    const char d_iname[32];
+    char d_iname[FILE_NAME_LEN];
 
-    const struct dentry_operations *d_op;
+    struct dentry_operations *d_op;
     struct super_block *d_sb;
 
-    struct list_head d_lru; /* Not sure the usage of this. There's no other list_head, so add it here. */
-    struct list_head d_child;
-    struct list_head d_subdirs;
+    // struct list_head d_lru; /* it is for lru cache usage, to cache the useless inode structure. No need for now */
+    struct list_head d_child; /* parent's child, so it is sibling dentry. */
+    struct list_head d_subdirs; /* sub directory of this dentry (children dentry) */
 };
 
 struct mount {
@@ -83,7 +91,16 @@ extern struct mount *rootfs;
 extern struct file_system_type *file_systems;
 
 
+static inline bool d_is_directory(struct dentry *dentry)
+{
+    return (dentry->d_flags & DCACHE_ENTRY_TYPE) == DCACHE_DIRECTORY_TYPE;
+}
+
+
 int register_filesystem(struct file_system_type *fs);
+void vfs_init(void);
+
+struct inode *get_inode(struct super_block *sb); /* fs provides this api to create a general inode. */
 
 struct file * vfs_open(const char *pathname, int flags);
 int vfs_close(struct file *file);

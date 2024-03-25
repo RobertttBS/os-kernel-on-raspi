@@ -43,15 +43,15 @@ int strcmp(const char *a, const char *b)
 }
 
 /* Return 0 if a, b are identical. */
-int strncmp(const char *a, const char *b, int len)
+int strncmp(const char *a, const char *b, int n)
 {
-    while (len-- > 0) {
+    while (n-- > 0) {
         if (*a != *b)
             break;
         a++;
         b++;
     }
-    return len < 0 ? 0 : *(const unsigned char *)a - *(const unsigned char *)b;
+    return n < 0 ? 0 : *(const unsigned char *)a - *(const unsigned char *)b;
 }
 
 int memcmp(void *s1, void *s2, int n)
@@ -71,10 +71,21 @@ int strlen(char *str)
     return count;
 }
 
-int strcpy(char *dst, char *src)
+int strcpy(char *dst, const char *src)
 {
     int i = 0;
     while (src[i] != '\0') {
+        dst[i] = src[i];
+        i++;
+    }
+    dst[i] = '\0';
+    return i;
+}
+
+int strncpy(char *dst, char *src, int n)
+{
+    int i = 0;
+    while (src[i] != '\0' && i < n) {
         dst[i] = src[i];
         i++;
     }

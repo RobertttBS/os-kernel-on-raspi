@@ -125,8 +125,8 @@ void get_memory_info()
     mbox[7] = 0; // MBOX_TAG_LAST
     mbox_call(8);
 
-    printf("arm memory base address : 0x%x\n", mbox[5]);
-    printf("arm memory base size    :   %x\n", mbox[6]);
+    printf("arm memory base address : 0x%8x\n", mbox[5]);
+    printf("arm memory base size    :   %8x\n", mbox[6]);
 }
 
 void __get_memory_info(unsigned int *base, unsigned int *size)
