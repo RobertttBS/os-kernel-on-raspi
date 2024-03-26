@@ -27,11 +27,36 @@ void vfs_init()
     vfs_mount("/", "tmpfs");
 }
 
+/* Ref: `dentry_open()` */
 struct file* vfs_open(const char *pathname, int flags)
 {
+    struct inode *target;
+    char target_path[64];
+    struct file *file;
+
     // 1. Lookup pathname from the root inode.
+    if (vfs_lookup(pathname, &target) != 0) {
+        printf("File not found.\n");
+        return NULL;
+    }
     // 2. Create a new file descriptor for this inode if found.
-    // 3. Create a new file if O_CREAT is specified in flags.
+    struct inode *target_file;
+    if (rootfs->mnt_root->d_inode->i_op->lookup(target, target_path, &target_file) != 0) { // What's the purpose of inode lookup?
+        printf("File not found.\n");
+        return NULL;
+    } else { // 3. Create a new file if O_CREAT is specified in flags.
+        if (flags & O_CREAT) {
+            file = (struct file *) kmalloc(sizeof(struct file));
+            if (rootfs->mnt_root->d_inode->i_op->create(target, target_path, &target_file) != 0) {
+                printf("Failed to create file.\n");
+                return NULL;
+            }
+            
+            file->f_inode = target_file;
+            file->f_flags = flags;
+            return file;
+        }
+    }
 
     return NULL;
 }
@@ -39,7 +64,7 @@ struct file* vfs_open(const char *pathname, int flags)
 int vfs_close(struct file *file)
 {
     // 1. release the file descriptor
-
+    kfree(file);
     return 0;
 }
 
@@ -97,17 +122,55 @@ int vfs_mount(const char *target, const char *filesystem)
 
 /**
  * Find the inode correspond to path name, store it to target.
+ * Because my design, I think the target should be a dentry.
  */
 int vfs_lookup(const char *pathname, struct inode **target)
 {
-    return 0;
+    struct dentry *root_dentry = rootfs->mnt_root;
+    struct dentry *p;
+    char tmp[32], *tmp_ptr = tmp;
+    
+    /* Walk the first "/". */
+    while (*pathname == '/')
+        pathname++;
+    if (!*pathname) {
+        *target = root_dentry->d_inode;
+        return 0;
+    }
+
+    while (*pathname != '\0') {
+        /* Walk the path name from the children of parent dentry. */
+        list_for_each_entry(p, &root_dentry->d_subdirs, d_subdirs) {
+            while (*pathname != '/' && *pathname != '\0') {
+                *tmp_ptr = *pathname;
+                tmp_ptr++;
+                pathname++;
+            }
+            if (!strcmp(p->d_iname, tmp)) {
+                if (*pathname == '\0') {
+                    *target = p->d_inode;
+                    return 0;
+                }
+                /* Go to next level. */
+                root_dentry = p;
+                continue;
+            }
+
+            /* Reset for next round. */
+            tmp_ptr = tmp;
+            while (*pathname == '/')
+                pathname++;
+        }
+    }
+
+    *target = NULL;
+    return -1;
 }
 
-
 /**
- * VFS provided function to allocate a general inode.
+ * VFS provided function to allocate a generic inode.
 */
-struct inode *get_inode(struct super_block *sb)
+struct inode *new_inode(struct super_block *sb)
 {
     struct inode *inode = (struct inode *) kmalloc(sizeof(struct inode));
     

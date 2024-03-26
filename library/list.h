@@ -4,14 +4,16 @@
 #include "stddef.h"
 #include "stdlib.h"
 
-/** Get the offset of MEMBER compared with the struct TYPE. 
+/** 
+ * Get the offset of MEMBER compared with the struct TYPE. 
  * It cast address 0 to be the pointer of TYPE, then get the address of MEMBER.
  * Because the TYPE address is 0x0, so the address of ((TYPE *)0)->MEMBER is the offset.
  * Finally, it cast the offset to size_t */
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 
-/** It calculate the offset of member (compared with type), then recover the address of object by substracting the offset.
- *  Return the address of the object with type casting.
+/**
+ * It calculate the offset of member (compared with type), then recover the address of object by substracting the offset.
+ * Return the address of the object with type casting.
  */
 #define container_of(ptr, type, member) ({ \
     const typeof(((type *)0)->member) *__mptr = (ptr); \

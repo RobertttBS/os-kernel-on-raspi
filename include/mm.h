@@ -91,6 +91,7 @@ void reserve_mem(unsigned long start, unsigned long end);
 
 /* Kernel memory allocate, return physical address. */
 void *kmalloc(unsigned long size);
+void kfree(void *obj);
 
 #endif // __ASSEMBLER__
 #endif // __MM_H__

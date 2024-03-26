@@ -32,7 +32,7 @@ struct super_operations tmpfs_super_operations = {
 /* file system implement its own inode creation function. */
 struct inode *tmpfs_create_inode(struct super_block *sb)
 {
-    struct inode *inode = get_inode(sb);
+    struct inode *inode = new_inode(sb);
     
     inode->i_op = &tmpfs_inode_operations;
     inode->i_fop = &tmpfs_file_operations;
@@ -44,7 +44,7 @@ struct inode *tmpfs_create_inode(struct super_block *sb)
 
 /** 
  * Ref: __d_alloc()
- * TODO: I may need to implement a general dentry allocation function in fs.h.
+ * TODO: I may need to implement a generic dentry allocation function in fs.h.
  * So `tmpfs_create_dentry` can focus on the tmpfs specific dentry initialization.
  */
 struct dentry *tmpfs_create_dentry(struct super_block *sb, const char *name, int type)
@@ -67,7 +67,7 @@ struct dentry *tmpfs_create_dentry(struct super_block *sb, const char *name, int
 
 /**
  * Create a super block for the file system.
- * TODO: implement a general super_block creation function in fs.h.
+ * TODO: implement a generic super_block creation function in fs.h.
  * Then `tmpfs_create_sb` can focus on the tmpfs specific super_block initialization.
 */
 struct super_block *tmpfs_create_sb(struct file_system_type *fs)

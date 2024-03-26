@@ -301,3 +301,18 @@ void *kmalloc(unsigned long size)
         return (void *) get_object(size);
     }
 }
+
+void kfree(void *obj)
+{
+    struct page *page = phys_to_page((unsigned long) obj);
+    unsigned long pfn = page_to_pfn(page);
+    unsigned int order = buddy_order(page);
+
+    if (order == 0) {
+        /* Use slab allocator to free memory. */
+        free_object(obj);
+    } else {
+        /* Free the page to buddy system. */
+        free_one_page(page, pfn, order);
+    }
+}

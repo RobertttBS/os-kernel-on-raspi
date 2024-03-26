@@ -13,6 +13,8 @@
 
 #define FILE_NAME_LEN    32
 
+#define O_CREAT 0x40  /* lab 7 spec defined value. */
+
 struct inode {
     struct super_block *i_sb;
 
@@ -23,7 +25,7 @@ struct inode {
 };
 
 struct file {
-    struct inode *inode;
+    struct inode *f_inode;
     struct file_operations *f_op;
 
     size_t f_pos; /* The next read/write position of this file descriptor. */
@@ -100,7 +102,7 @@ static inline bool d_is_directory(struct dentry *dentry)
 int register_filesystem(struct file_system_type *fs);
 void vfs_init(void);
 
-struct inode *get_inode(struct super_block *sb); /* fs provides this api to create a general inode. */
+struct inode *new_inode(struct super_block *sb); /* fs provides this api to create a generic inode. */
 
 struct file * vfs_open(const char *pathname, int flags);
 int vfs_close(struct file *file);
