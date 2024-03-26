@@ -70,25 +70,40 @@ int vfs_close(struct file *file)
 
 int vfs_write(struct file *file, const void *buf, size_t len)
 {
+    if (!(file->f_path.dentry->d_flags & DCACHE_REGULAR_TYPE)) {
+        printf("Can't write to a non regular file.\n");
+        return -1;
+    }
     // 1. write len byte from buf to the opened file.
     // 2. return written size or error code if an error occurs.
 
-    return 0;
+    return file->f_op->write(file, buf, len);;
 }
 
 int vfs_read(struct file *file, void *buf, size_t len)
 {
+    if (!(file->f_path.dentry->d_flags & DCACHE_REGULAR_TYPE)) {
+        printf("Can't write to a non regular file.\n");
+        return -1;
+    }
     // 1. read min(len, readable file data size) byte to buf from the opened file.
     // 2. return read size or error code if an error occurs.
 
-    return 0;
+    return file->f_op->read(file, buf, len);
 }
 
 int vfs_mkdir(const char *pathname)
 {
+    struct inode *target_dir, *child_dir;
+    char child_name[64];
+
+    vfs_lookup(pathname, &target_dir);
+    if (target_dir->i_op->mkdir(target_dir, child_name, &child_dir) != 0) {
+        printf("Failed to create directory.\n");
+        return -1;
+    }
     return 0;
 }
-
 
 /**
  * Mount the file system to the target path.

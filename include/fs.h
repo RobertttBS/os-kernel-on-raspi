@@ -15,6 +15,11 @@
 
 #define O_CREAT 0x40  /* lab 7 spec defined value. */
 
+struct path {
+    struct vfsmount *mnt;
+    struct dentry *dentry;
+};
+
 struct inode {
     struct super_block *i_sb;
 
@@ -27,6 +32,8 @@ struct inode {
 struct file {
     struct inode *f_inode;
     struct file_operations *f_op;
+
+    struct path f_path;
 
     size_t f_pos; /* The next read/write position of this file descriptor. */
     int f_flags; /* Not sure the usage for now. */
@@ -79,6 +86,7 @@ struct file_operations {
 struct inode_operations {
     int (*lookup) (struct inode *dir_node, struct inode **target, const char *component_name);
     int (*create) (struct inode *dir_node, struct inode **target, const char *component_name);
+    int (*mkdir) (struct inode *dir_node, struct dentry *dentry, int mode);
 };
 
 struct dentry_operations {
