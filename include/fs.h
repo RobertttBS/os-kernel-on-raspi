@@ -78,14 +78,17 @@ struct file_system_type {
     struct file_system_type *next;
 };
 
+/* ref: `simple_dir_operations` */
 struct file_operations {
+    /* ref: `simple_open`: move `inode->i_private` to `file->private_data` */
     int (*write) (struct file *file, const void *buf, size_t len);
-    int (*read) (struct file *file, void *buf, size_t len);
+    int (*read) (struct file *file, void *buf, size_t len); /* ref: `generic_read_dir` */
+    /* ref: `generic_file_llseek`, `default_llseek` */
 };
 
 struct inode_operations {
-    int (*lookup) (struct inode *dir_node, struct inode **target, const char *component_name);
-    int (*create) (struct inode *dir_node, struct inode **target, const char *component_name);
+    int (*lookup) (struct inode *dir_node, struct inode **target, const char *component_name); /* ref: `simple_lookup` */
+    int (*create) (struct inode *dir_node, struct inode **target, const char *component_name); /* ref: `exfat_create`, `ex2_create`. Create inode for dentry (dir_node) */
     int (*mkdir) (struct inode *dir_node, struct dentry *dentry, int mode);
 };
 
@@ -107,7 +110,7 @@ static inline bool d_is_directory(struct dentry *dentry)
 }
 
 
-int register_filesystem(struct file_system_type *fs);
+int register_filesystem(struct file_system_type *fs); /* ref: register_filesystem` */
 void vfs_init(void);
 
 struct inode *new_inode(struct super_block *sb); /* fs provides this api to create a generic inode. */
@@ -117,8 +120,9 @@ int vfs_close(struct file *file);
 int vfs_write(struct file *file, const void *buf, size_t len);
 int vfs_read(struct file *file, void *buf, size_t len);
 
-int vfs_mkdir(const char* pathname);
+int vfs_mkdir(const char* pathname); /* ref: `vfs_mkdir` */
 int vfs_mount(const char* target, const char* filesystem);
 int vfs_lookup(const char* pathname, struct inode** target);
+int vfs_create(const char* pathname); /* ref: `vfs_create`*/
 
 #endif // __FS_H__

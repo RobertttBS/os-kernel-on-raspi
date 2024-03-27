@@ -29,7 +29,7 @@ struct super_operations tmpfs_super_operations = {
     .alloc_inode = tmpfs_create_inode,
 };
 
-/* file system implement its own inode creation function. */
+/* file system implement its own inode creation function. Ref: `ext_create` */
 struct inode *tmpfs_create_inode(struct super_block *sb)
 {
     struct inode *inode = new_inode(sb);

@@ -40,8 +40,8 @@ struct file* vfs_open(const char *pathname, int flags)
         return NULL;
     }
     // 2. Create a new file descriptor for this inode if found.
-    struct inode *target_file;
-    if (rootfs->mnt_root->d_inode->i_op->lookup(target, target_path, &target_file) != 0) { // What's the purpose of inode lookup?
+    struct inode *target_inode;
+    if (rootfs->mnt_root->d_inode->i_op->lookup(target, target_path, &target_inode) != 0) { // What's the purpose of inode lookup?
         printf("File not found.\n");
         return NULL;
     } else { // 3. Create a new file if O_CREAT is specified in flags.
@@ -54,6 +54,7 @@ struct file* vfs_open(const char *pathname, int flags)
             
             file->f_inode = target_file;
             file->f_flags = flags;
+            file->f_op = target_file->i_fop; /* get file operation from inode */
             return file;
         }
     }
@@ -180,6 +181,12 @@ int vfs_lookup(const char *pathname, struct inode **target)
 
     *target = NULL;
     return -1;
+}
+
+
+int vfs_create(const char* pathname)
+{
+    return 0;
 }
 
 /**
