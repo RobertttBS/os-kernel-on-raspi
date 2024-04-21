@@ -144,11 +144,11 @@ void initrd_usr_prog(char *cmd)
                 uart_puts("user_program is empty.\n");
                 return;
             } else {
-                uart_puts("\nInto user_program: ");
-                uart_puts(buf + sizeof(cpio_f));
-                uart_puts("\nAddress: ");
-                uart_hex((int) buf + sizeof(cpio_f));
-                uart_send('\n');
+                // uart_puts("\nInto user_program: ");
+                // uart_puts(buf + sizeof(cpio_f));
+                // uart_puts("\nAddress: ");
+                // uart_hex((int) buf + sizeof(cpio_f));
+                // uart_send('\n');
                 // get program start address
                 char *prog_addr = buf + sizeof(cpio_f) + ns;
                 
@@ -182,7 +182,7 @@ void initramfs_callback(fdt_prop *prop, char *node_name, char *property_name)
         uint32_t load_addr = *((uint32_t *)(prop + 1));
         cpio_base = (char *) bswap_32(load_addr);
         uart_puts("cpio_base: ");
-        uart_hex((int) cpio_base);
+        uart_hex((unsigned int) cpio_base);
         uart_send('\n');
     }
 }

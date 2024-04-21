@@ -104,6 +104,7 @@ extern struct mount *rootfs;
 extern struct file_system_type *file_systems;
 
 
+/* Check whether the dentry is directory */
 static inline bool d_is_directory(struct dentry *dentry)
 {
     return (dentry->d_flags & DCACHE_ENTRY_TYPE) == DCACHE_DIRECTORY_TYPE;

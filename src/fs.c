@@ -41,20 +41,20 @@ struct file* vfs_open(const char *pathname, int flags)
     }
     // 2. Create a new file descriptor for this inode if found.
     struct inode *target_inode;
-    if (rootfs->mnt_root->d_inode->i_op->lookup(target, target_path, &target_inode) != 0) { // What's the purpose of inode lookup?
+    if (rootfs->mnt_root->d_inode->i_op->lookup(target, &target_inode, target_path) != 0) { // What's the purpose of inode lookup?
         printf("File not found.\n");
         return NULL;
     } else { // 3. Create a new file if O_CREAT is specified in flags.
         if (flags & O_CREAT) {
             file = (struct file *) kmalloc(sizeof(struct file));
-            if (rootfs->mnt_root->d_inode->i_op->create(target, target_path, &target_file) != 0) {
+            if (rootfs->mnt_root->d_inode->i_op->create(target, &target_inode, target_path) != 0) {
                 printf("Failed to create file.\n");
                 return NULL;
             }
             
-            file->f_inode = target_file;
+            file->f_inode = target_inode;
             file->f_flags = flags;
-            file->f_op = target_file->i_fop; /* get file operation from inode */
+            file->f_op = target_inode->i_fop; /* get file operation from inode */
             return file;
         }
     }
@@ -110,7 +110,7 @@ int vfs_mkdir(const char *pathname)
  * Mount the file system to the target path.
  * Ref: linux `fc_mount()`.
 */
-int vfs_mount(const char *target, const char *filesystem)
+int vfs_mount(const char *path, const char *filesystem)
 {
     struct file_system_type* fs;
     struct mount *mnt;
@@ -127,18 +127,18 @@ int vfs_mount(const char *target, const char *filesystem)
     }
 
     /* Use the file_system_type to generate `dentry` for given path. */
-    mnt->mnt_root = fs->mount(fs, target);
+    mnt->mnt_root = fs->mount(fs, path);
     mnt->mnt_sb = mnt->mnt_root->d_sb;
 
     rootfs = mnt;
-    printf("Success to mount %s to %s\n", filesystem, target);
+    printf("Success to mount %s to %s\n", filesystem, path);
 
     return 0;
 }
 
 /**
  * Find the inode correspond to path name, store it to target.
- * Because my design, I think the target should be a dentry.
+ * Because my design, I think the target should be a dentry. And I should use the dentry to parse the tree.
  */
 int vfs_lookup(const char *pathname, struct inode **target)
 {

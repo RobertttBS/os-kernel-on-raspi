@@ -29,7 +29,7 @@ struct super_operations tmpfs_super_operations = {
     .alloc_inode = tmpfs_create_inode,
 };
 
-/* file system implement its own inode creation function. Ref: `ext_create` */
+/* file system implement its own inode creation function. Ref: `ext2_create` */
 struct inode *tmpfs_create_inode(struct super_block *sb)
 {
     struct inode *inode = new_inode(sb);
@@ -52,7 +52,7 @@ struct dentry *tmpfs_create_dentry(struct super_block *sb, const char *name, int
     struct dentry *dentry = (struct dentry *) kmalloc(sizeof(struct dentry));
 
     /* Initialize dentry members */
-    dentry->d_flags |= type; /* Init the d_flags */
+    dentry->d_flags |= type; /* Init the d_flags, which represents directory or normal file. */
     dentry->d_inode = tmpfs_create_inode(sb); /* Init the d_inode */
     dentry->d_parent = dentry; /* Init the parent of the dentry */
     strcpy(dentry->d_iname, name); /* Init the name of the dentry */
@@ -66,8 +66,8 @@ struct dentry *tmpfs_create_dentry(struct super_block *sb, const char *name, int
 }
 
 /**
- * Create a super block for the file system.
- * TODO: implement a generic super_block creation function in fs.h.
+ * Create a super block for the file system. Fill the information of tmpfs super block.
+ * TODO: implement a generic super_block creation function in fs.h. Ref: `sget()`, `alloc_super()` in linux.
  * Then `tmpfs_create_sb` can focus on the tmpfs specific super_block initialization.
 */
 struct super_block *tmpfs_create_sb(struct file_system_type *fs)

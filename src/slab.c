@@ -65,7 +65,7 @@ static struct page *allocate_slab(struct kmem_cache *cache)
     if (!slab)
         return NULL;
 
-    /* Setup the flags of slab*/
+    /* Setup the flags of slab, so we can know where a given address belongs to slab or buddy system by this flag */
     slab->flags = PG_slab;
     
     /* Init slab's list_head and insert into kmem_cache */
@@ -120,7 +120,7 @@ static inline void *__get_object(struct kmem_cache *cache)
     return object;
 }
 
-/* the size should be less or equal to 2048*/
+/* the size should be less or equal to 2048 */
 void *get_object(unsigned int size)
 {
     void *object = NULL;
