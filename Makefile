@@ -32,8 +32,8 @@ SRC_OBJS += $(SRC_ASM:$(SRC_DIR)/%.S=$(BUILD_DIR)/src/%.o)
 CFLAGS = -Wall -O2 -ffreestanding -nostdinc -nostdlib -nostartfiles -mgeneral-regs-only -Iinclude -Ilibrary -c -g
 
 # TOOLCHAIN = aarch64-none-linux-gnu
-TOOLCHAIN = aarch64-none-elf
-# TOOLCHAIN = /Applications/ArmGNUToolchain/13.2.Rel1/aarch64-none-elf/bin/aarch64-none-elf
+# TOOLCHAIN = aarch64-none-elf
+TOOLCHAIN = /Applications/ArmGNUToolchain/13.2.Rel1/aarch64-none-elf/bin/aarch64-none-elf
 
 .PHONY: all clean
 
@@ -66,7 +66,7 @@ run: initramfs.cpio
 	-dtb bcm2710-rpi-3-b-plus.dtb \
 	-serial null -serial stdio \
 	-drive if=sd,file=sd_sfn.img,format=raw
-	# -drive if=sd,file=sdcard.img,format=raw 
+	# -drive if=sd,file=sdcard.img,format=raw
 
 dtb: initramfs.cpio
 	qemu-system-aarch64 -M raspi3b -kernel kernel8.img -initrd initramfs.cpio -dtb bcm2710-rpi-3-b-plus.dtb -serial null -serial stdio

@@ -46,17 +46,14 @@ void do_tasklet(void)
     bool todo;
 
     /* Select the highest priority taskelt in the tl_head until there's no tasklet which priority greater than prev_priority */
-    while (1)
-    {
+    while (1) {
         tl = (struct tasklet_struct **) &tl_head.head;
         tl_iter = (struct tasklet_struct **) &tl_head.head;
         todo = false;
         cur_tl = NULL;
 
-        while (*tl_iter)
-        {
-            if ((*tl_iter)->state > prev_priority && (*tl_iter)->state > cur_tl_priority)
-            {
+        while (*tl_iter) {
+            if ((*tl_iter)->state > prev_priority && (*tl_iter)->state > cur_tl_priority) {
                 cur_tl_priority = (*tl_iter)->state;
                 tl = tl_iter;
                 todo = true;
@@ -66,7 +63,7 @@ void do_tasklet(void)
 
         if (!todo)
             break;
-        
+
         /* Remove the tasklet from the tl_head list */
 #ifdef INSERT_TAIL
         if (!(*tl)->next) // if `*tl` is the last element, we should move the tl_head.tail

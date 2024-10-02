@@ -45,44 +45,40 @@ int strcmp(const char *a, const char *b)
 /* if s1 == s2, return 0. Else return non-zero value */
 int memcmp(void *s1, void *s2, int n)
 {
-    unsigned char *a=s1,*b=s2;
-    while(n-->0){ if(*a!=*b) { return *a-*b; } a++; b++; }
+    const char *a = s1;
+    const char *b = s2;
+    if (n != 0) {
+        do {
+            if (*a++ != *b++)
+                return (*--a - *--b);
+        } while (--n != 0);
+    }
     return 0;
 }
 
 int strlen(const char *str)
 {
-    int count = 0;
-    while (*str != '\0') {
-        count++;
-        str++;
-    }
-    return count;
+    const char *s;
+
+    for (s = str; *s; ++s);
+    return (s - str);
 }
 
-int strcpy(char *dst, const char *src)
+char *strcpy(char *dst, const char *src)
 {
-    int i = 0;
-    while (src[i] != '\0') {
-        dst[i] = src[i];
-        i++;
-    }
-    dst[i] = '\0';
-    return i;
+    char *ret = dst;
+
+    for (; (*dst = *src); src++, dst++);
+    return ret;
 }
 
-int strcat(char *dst, const char *src)
+char *strcat(char *dst, const char *src)
 {
-    int i = 0, j = 0;
-    while (dst[i] != '\0')
-        i++;
-    while (src[j] != '\0') {
-        dst[i] = src[j];
-        i++;
-        j++;
-    }
-    dst[i] = '\0';
-    return i;
+    char *save = dst;
+
+    for (; *dst; dst++);
+    while ((*dst++ = *src++));
+    return save;
 }
 
 int atoi(char *s)

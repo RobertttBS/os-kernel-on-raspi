@@ -68,8 +68,8 @@ struct task_struct {
     struct sighandler sighand;
 
     int exit_state;
-    struct task_state_segment tss; // because context switch occurs in kernel mode,sp are in el1 (sp_el1);
-    
+    struct task_state_segment tss; // because context switch occurs in kernel mode, sp are in el1 (sp_el1);
+
     struct mm_struct mm;
 
     char current_dir[MAX_PATH_LEN]; // current working directory
