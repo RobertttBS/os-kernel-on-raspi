@@ -1,14 +1,45 @@
-# OSC2024
+# Bare Metal OS Kernel on Raspi 3b+
 
-| Github Account | Student ID | Name          |
-|----------------|------------|---------------|
-| RobertttBS     | 311555026  | 謝柏陞         |
+This project involves developing a fully functional embedded operating system kernel from scratch on the Raspberry Pi 3B+. 
 
-## Requirements
+It implements several key system functions and hardware controls.
 
-* a cross-compiler for aarch64
-* (optional) qemu-system-arm
-* Modification at Makefile
+# Key Features
+### Hardware Initialization and Low-level Communication
+- Mailbox communication mechanism
+- Mini UART shell
+- Device tree parsing
+- initramfs.cpio
+
+### Interrupt and Exception Handling
+- Exception level switch
+- Exception handling
+- UART interrupt
+- Core timer interrupt
+- Nested interrupt
+
+### Memory Management
+- memblock
+- Buddy system
+- Slab allocator
+- Enable MMU
+- 4-level page table walk
+
+### Multitasking
+- Threads management
+- Scheduler
+- System call
+- POSIX signal
+
+### File System
+- Virtual file system
+- FAT32 file system
+
+### Development Environment and Tools
+- Programming Languages: C, ARM Assembly
+- GDB debugger
+- QEMU emulator
+- Arm GNU Toolchain
 
 ## Build kernel img
 
@@ -33,7 +64,7 @@ make run
 make tty
 ```
 
-## Send image to Raspi 3
+## Send image to Raspi 3 bootloader
 
 ```
 make sendimg
